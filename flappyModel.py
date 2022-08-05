@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import os 
-from FlapPyBird import flappy
+from FlappyBird import flappy
 #done is game over state
 ALPHA = .01
 GAMMA = .8

@@ -1,5 +1,5 @@
 
-from FlapPyBird import flappy as fp
+from FlappyBird import flappy as fp
 import flappyModel as fm
 
 supported_types = ['PLAY', 'TRAIN']
@@ -36,7 +36,7 @@ def main(typeGame):
 
 
 
-main('train')
+main(None)
    
 
 

@@ -97,7 +97,7 @@ class gameManager:
 
 class game:
     def __init__(self, typeGame):
-        if typeGame.upper() == 'Train': #When training game runs faster so training happens faster
+        if typeGame.gameType.upper() == 'TRAIN': #When training game runs faster so training happens faster
             self.FPS = 960
         else:
             self.FPS = 30

@@ -31,7 +31,7 @@ Then
 
 ```bash
 cd Flappy_Bird_AI
-pip install -r requirments.txt
+pip install -r requirements.txt
 ```
 
 How To Use
@@ -61,6 +61,8 @@ to train the AI
 
 When training, the AI will save its best model in ```\path\to\Flappy_Bird_AI\model```
 In this folder there will be a pt file of the model as well as a txt with its best score that it achieved
+
+When the program is launched you may need to change window focus to newly made window
 
 In order to exit the program use the <kbd>Esc</kbd> key
 
