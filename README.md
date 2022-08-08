@@ -10,7 +10,7 @@ Future Features
 
 (Going from most important to least)
 
-1. Increasing the performance of the AI (current record is 12 points)
+1. Increasing the performance of the AI (current record is 72 points but only very rarely gets above 10)
 
 1. Add an evaluate mode 
 

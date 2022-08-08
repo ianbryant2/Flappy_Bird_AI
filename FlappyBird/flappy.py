@@ -26,6 +26,8 @@ class gameManager:
         self.game = game(self.typeOfGame)
         self.topCount = 0
         self.bottomCount = 0
+        self.upperDistOffset = 10  #How far away from the pipe the bird has to be in order for certain reward 
+        self.lowerDistOffset = 20  
 
     def executeAction(self):
         if self.movement == [1,0]:
@@ -36,20 +38,28 @@ class gameManager:
         self.score_check = score
         self.executeAction()
 
+    def determinePosReward(self): #Increases reward as it gets 
+        return 8.88889*(self.upperDistOffset)+355.556
+
     def getReward(self, crashInfo, score):
         reward = 0
         done = False
-        distanceTop = self.game.playery - (self.game.IMAGES['pipe'][0].get_height()+self.game.upperPipes[-2]['y'])
-        distanceBottom = self.game.lowerPipes[-2]['y'] - self.game.playery
-        if distanceTop < 5 or distanceBottom < 5:
+        self.distanceTop = self.game.playery - (self.game.IMAGES['pipe'][0].get_height()+self.game.upperPipes[-2]['y'])
+        self.distanceBottom = self.game.lowerPipes[-2]['y'] - self.game.playery
+        if self.distanceTop < self.upperDistOffset  or self.distanceBottom < self.lowerDistOffset :
             reward += -200
         else:
-            reward += 200
+            reward += self.determinePosReward()
         if crashInfo != None: #Did  Crash
-            if distanceTop > distanceBottom:
+            ''' uncomment if what to see stats on whether it crashed on the top or bottom
+            if self.distanceTop > self.distanceBottom:
                 self.bottomCount += 1
             else:
                 self.topCount += 1
+            print(self.topCount)
+            print(self.bottomCount)
+            print()
+            ''' 
             done = True
             reward += -200
             return reward, done, score
@@ -64,8 +74,6 @@ class gameManager:
         crashInfo = None
         for i in range(self.fpsCount):
             crashInfo = self.game.levelLoop()
-            #if crashInfo != None: #Stops drawing the frames once it has crashed
-                #break
         return self.getReward(crashInfo, self.game.score)
     
     def reset(self):
@@ -89,16 +97,14 @@ class gameManager:
         while True:
             self.game.initLevel()
             crashInfo = None
-            #count = 0
             while crashInfo == None:
-                #count += 1
                 crashInfo = self.game.levelLoop()
             self.game.showGameOverScreen(crashInfo)
 
 class game:
     def __init__(self, typeGame):
         if typeGame.gameType.upper() == 'TRAIN': #When training game runs faster so training happens faster
-            self.FPS = 960
+            self.FPS = 3840 #May need to change if computer can not handle
         else:
             self.FPS = 30
         self.SCREENWIDTH  = 288
@@ -112,34 +118,34 @@ class game:
         self.PLAYERS_LIST = (
             # red bird
             (
-                'FlapPyBird/assets/sprites/redbird-upflap.png',
-                'FlapPyBird/assets/sprites/redbird-midflap.png',
-                'FlapPyBird/assets/sprites/redbird-downflap.png',
+                'FlappyBird/assets/sprites/redbird-upflap.png',
+                'FlappyBird/assets/sprites/redbird-midflap.png',
+                'FlappyBird/assets/sprites/redbird-downflap.png',
             ),
             # blue bird
             (
-                'FlapPyBird/assets/sprites/bluebird-upflap.png',
-                'FlapPyBird/assets/sprites/bluebird-midflap.png',
-                'FlapPyBird/assets/sprites/bluebird-downflap.png',
+                'FlappyBird/assets/sprites/bluebird-upflap.png',
+                'FlappyBird/assets/sprites/bluebird-midflap.png',
+                'FlappyBird/assets/sprites/bluebird-downflap.png',
             ),
             # yellow bird
             (
-                'FlapPyBird/assets/sprites/yellowbird-upflap.png',
-                'FlapPyBird/assets/sprites/yellowbird-midflap.png',
-                'FlapPyBird/assets/sprites/yellowbird-downflap.png',
+                'FlappyBird/assets/sprites/yellowbird-upflap.png',
+                'FlappyBird/assets/sprites/yellowbird-midflap.png',
+                'FlappyBird/assets/sprites/yellowbird-downflap.png',
             ),
         )
 
         # list of backgrounds
         self.BACKGROUNDS_LIST = (
-            'FlapPyBird/assets/sprites/background-day.png',
-            'FlapPyBird/assets/sprites/background-night.png',
+            'FlappyBird/assets/sprites/background-day.png',
+            'FlappyBird/assets/sprites/background-night.png',
         )
 
         # list of pipes
         self.PIPES_LIST = (
-            'FlapPyBird/assets/sprites/pipe-green.png',
-            'FlapPyBird/assets/sprites/pipe-red.png',
+            'FlappyBird/assets/sprites/pipe-green.png',
+            'FlappyBird/assets/sprites/pipe-red.png',
         )
 
 
@@ -154,24 +160,24 @@ class game:
 
         # numbers sprites for score display
         self.IMAGES['numbers'] = (
-            pygame.image.load('FlapPyBird/assets/sprites/0.png').convert_alpha(),
-            pygame.image.load('FlapPyBird/assets/sprites/1.png').convert_alpha(),
-            pygame.image.load('FlapPyBird/assets/sprites/2.png').convert_alpha(),
-            pygame.image.load('FlapPyBird/assets/sprites/3.png').convert_alpha(),
-            pygame.image.load('FlapPyBird/assets/sprites/4.png').convert_alpha(),
-            pygame.image.load('FlapPyBird/assets/sprites/5.png').convert_alpha(),
-            pygame.image.load('FlapPyBird/assets/sprites/6.png').convert_alpha(),
-            pygame.image.load('FlapPyBird/assets/sprites/7.png').convert_alpha(),
-            pygame.image.load('FlapPyBird/assets/sprites/8.png').convert_alpha(),
-            pygame.image.load('FlapPyBird/assets/sprites/9.png').convert_alpha()
+            pygame.image.load('FlappyBird/assets/sprites/0.png').convert_alpha(),
+            pygame.image.load('FlappyBird/assets/sprites/1.png').convert_alpha(),
+            pygame.image.load('FlappyBird/assets/sprites/2.png').convert_alpha(),
+            pygame.image.load('FlappyBird/assets/sprites/3.png').convert_alpha(),
+            pygame.image.load('FlappyBird/assets/sprites/4.png').convert_alpha(),
+            pygame.image.load('FlappyBird/assets/sprites/5.png').convert_alpha(),
+            pygame.image.load('FlappyBird/assets/sprites/6.png').convert_alpha(),
+            pygame.image.load('FlappyBird/assets/sprites/7.png').convert_alpha(),
+            pygame.image.load('FlappyBird/assets/sprites/8.png').convert_alpha(),
+            pygame.image.load('FlappyBird/assets/sprites/9.png').convert_alpha()
         )
 
         # game over sprite
-        self.IMAGES['gameover'] = pygame.image.load('FlapPyBird/assets/sprites/gameover.png').convert_alpha()
+        self.IMAGES['gameover'] = pygame.image.load('FlappyBird/assets/sprites/gameover.png').convert_alpha()
         # message sprite for welcome screen
-        self.IMAGES['message'] = pygame.image.load('FlapPyBird/assets/sprites/message.png').convert_alpha()
+        self.IMAGES['message'] = pygame.image.load('FlappyBird/assets/sprites/message.png').convert_alpha()
         # base (ground) sprite
-        self.IMAGES['base'] = pygame.image.load('FlapPyBird/assets/sprites/base.png').convert_alpha()
+        self.IMAGES['base'] = pygame.image.load('FlappyBird/assets/sprites/base.png').convert_alpha()
 
         # sounds
         if 'win' in sys.platform:
@@ -179,11 +185,11 @@ class game:
         else:
             self.soundExt = '.ogg'
 
-        self.SOUNDS['die']    = pygame.mixer.Sound('FlapPyBird/assets/audio/die' + self.soundExt)
-        self.SOUNDS['hit']    = pygame.mixer.Sound('FlapPyBird/assets/audio/hit' + self.soundExt)
-        self.SOUNDS['point']  = pygame.mixer.Sound('FlapPyBird/assets/audio/point' + self.soundExt)
-        self.SOUNDS['swoosh'] = pygame.mixer.Sound('FlapPyBird/assets/audio/swoosh' + self.soundExt)
-        self.SOUNDS['wing']   = pygame.mixer.Sound('FlapPyBird/assets/audio/wing' + self.soundExt)
+        self.SOUNDS['die']    = pygame.mixer.Sound('FlappyBird/assets/audio/die' + self.soundExt)
+        self.SOUNDS['hit']    = pygame.mixer.Sound('FlappyBird/assets/audio/hit' + self.soundExt)
+        self.SOUNDS['point']  = pygame.mixer.Sound('FlappyBird/assets/audio/point' + self.soundExt)
+        self.SOUNDS['swoosh'] = pygame.mixer.Sound('FlappyBird/assets/audio/swoosh' + self.soundExt)
+        self.SOUNDS['wing']   = pygame.mixer.Sound('FlappyBird/assets/audio/wing' + self.soundExt)
 
 
 

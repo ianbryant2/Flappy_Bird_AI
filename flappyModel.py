@@ -14,7 +14,7 @@ BUFFER_SIZE = 700
 EPSILON_START = 1.0
 EPSILON_END = .02
 EPSILON_DECAY=1000
-NUM_OF_FRAMES_TIL_CHECK = 5
+NUM_OF_FRAMES_TIL_CHECK = 2
 
 class model(nn.Module):
     def __init__(self, gm):
