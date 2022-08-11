@@ -10,13 +10,19 @@ Future Features
 
 (Going from most important to least)
 
-1. Increasing the performance of the AI (current record is 72 points but only very rarely gets above 10)
+1. Increasing the stability of the AI 
 
 1. Add an evaluate mode 
 
 1. Add graphs to help better understand the training process
 
 1. Include pretrained weights so user does not have to train in order to see an evaluation
+
+Current Scores
+--------------
+
+Record: 297
+Best Average Score: 46.152
 
 Setup (Tested on Windows with Python 3.10.5)
 --------------------------------------------
@@ -66,7 +72,7 @@ When the program is launched you may need to change window focus to newly made w
 
 In order to exit the program use the <kbd>Esc</kbd> key
 
-Copy of Orginal Repositiories
+Orginal Repositiories
 -------------
 
 Orginal repositiories used in order to make this project

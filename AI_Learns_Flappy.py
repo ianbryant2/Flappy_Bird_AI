@@ -2,7 +2,7 @@
 from FlappyBird import flappy as fp
 import flappyModel as fm
 
-supported_types = ['PLAY', 'TRAIN']
+supported_types = ['PLAY', 'TRAIN', 'TEST']
 
 def correct_Punctuation(supported_Types):
    '''Adds the correct punctuation to the supported types'''
@@ -29,9 +29,18 @@ def main(typeGame):
    gm = fp.gameManager(typeGame)
    if typeGame.upper() == 'TRAIN':
       agent = fm.agent(typeGame)
-      agent.train()
+      fm.train(agent)
    elif typeGame.upper() == 'PLAY':
-      gm.play()  
+      gm.play()
+   elif typeGame.upper() == 'TEST':
+      agent = fm.agent(typeGame)
+      fm.train(agent,epochs=10000) #epochs here are the number of games run in order to train
+      print('starting to evaluate')
+      for i in range(3): #number of times it is going to be evaluated
+         fm.evaluate(agent, run_num = i, epochs = 1000) #epochs here are the number of games used when evaluating 
+         
+
+
 
 
 

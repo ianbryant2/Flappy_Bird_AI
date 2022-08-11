@@ -7,10 +7,10 @@ import torch.nn.functional as F
 import os 
 from FlappyBird import flappy
 #done is game over state
-ALPHA = .01
+ALPHA = .001
 GAMMA = .8
-BATCH_SIZE = 128
-BUFFER_SIZE = 700
+BATCH_SIZE = 32
+BUFFER_SIZE = 700000
 EPSILON_START = 1.0
 EPSILON_END = .02
 EPSILON_DECAY=1000
@@ -31,17 +31,18 @@ class model(nn.Module):
         x = self.linear3(x)
         return x
         
-    def save(self, record, file_name='model.pt'):
-        model_folder_path = './model'
+    def save(self, run_num, type, file_name='best_weights.pt'):
+        if run_num == None:
+            model_folder_path = './model/' + str(type) 
+        else: 
+            model_folder_path = './model/' + str(type) + str(run_num)
         if not os.path.exists(model_folder_path):
             os.makedirs(model_folder_path)
         file_name = os.path.join(model_folder_path, file_name)
-        with open(model_folder_path+'/record.txt', 'w') as r:
-            r.write(str(record))
 
         torch.save(self.state_dict(), file_name)
 
-class modelTrainer:
+class model_trainer:
     def __init__(self, model, alpha=ALPHA, gamma=GAMMA):
         self.alpha = alpha
         self.gamma = gamma
@@ -82,14 +83,14 @@ class modelTrainer:
 
 
 class agent:
-    def __init__(self, typeGame, gm=flappy.gameManager, model=model, modelTrainer=modelTrainer, epsilon_start = EPSILON_START, epsilon_end = EPSILON_END, epsilon_decay= EPSILON_DECAY, buffer_size = BUFFER_SIZE):
+    def __init__(self, type_game, gm=flappy.gameManager, model=model, model_trainer=model_trainer, epsilon_start = EPSILON_START, epsilon_end = EPSILON_END, epsilon_decay= EPSILON_DECAY, buffer_size = BUFFER_SIZE):
         self.num_games = 0
         self.gamma = 0
         self.memory = deque(maxlen=buffer_size)
-        self.typeGame = typeGame
-        self.gm = gm(typeGame, NUM_OF_FRAMES_TIL_CHECK)
+        self.type_game = type_game
+        self.gm = gm(type_game, NUM_OF_FRAMES_TIL_CHECK)
         self.model = model(self.gm)
-        self.trainer = modelTrainer(self.model)
+        self.trainer = model_trainer(self.model)
         self.epsilon_start = epsilon_start
         self.epsilon_end = epsilon_end
         self.epsilon_decay = epsilon_decay
@@ -112,43 +113,99 @@ class agent:
     def train_short_memory(self, state, action, reward, new_state, done):
         self.trainer.train_step(state, action, reward, new_state, done)
 
-    def get_action(self, state):
+    def get_action(self, state, epsilon = True):
         self.epsilon = np.interp(self.num_games, [0, self.epsilon_decay], [self.epsilon_start, self.epsilon_end])
         action = [0,0]
-        if self.epsilon >= random.uniform(0.0,1.0):
-            move = random.randint(0,1)
-            action[move]=1
+        if epsilon:
+            if self.epsilon >= random.uniform(0.0,1.0):
+                move = random.randint(0,1)
+                action[move]=1
+            else:
+                state_t = torch.tensor(state, dtype=torch.float) #turn the state array into a tensor
+                predict = self.model(state_t)
+                move = torch.argmax(predict).item()
+                action[move]=1
         else:
             state_t = torch.tensor(state, dtype=torch.float) #turn the state array into a tensor
             predict = self.model(state_t)
             move = torch.argmax(predict).item()
             action[move]=1
         return action
+    
+    def save_scores(self, record, total_score, run_num, type, file_name = 'scores.txt'):
+        if run_num == None:
+            model_folder_path = './model/' + str(type)
+        else: 
+            model_folder_path = './model/' + str(type) + str(run_num)
+        if not os.path.exists(model_folder_path):
+            os.makedirs(model_folder_path)
+        file_name = os.path.join(model_folder_path, file_name)
+        with open(file_name, 'w') as r:
+            r.write(str(record) + '\n' + str(total_score/self.num_games))
 
-    def train(self):
-        score = 0
-        record = 0
-        self.gm.reset()
-        while True:
-            # get old state
-            state = self.get_state()
-            #get move
-            action = self.get_action(state)
-            # action then new state
-            reward, done, score = self.gm.actionSequence(action)
-            new_state = self.get_state() 
-            #self.train_short_memory(state, action, reward, new_state, done)
-            self.remember(state, action, reward, new_state, done)
+def train(agent, run_num = None, epochs = None):  #run num is the number of differnt training cycles. used to save correctly
+    total_score = 0
+    record = 0
+    agent = agent
+   
+   #resets the enviroment
+    agent.gm.reset()
+    agent.num_games = 0
 
-            if done:
-                self.gm.reset()
-                self.num_games+=1
-                self.train_long_memory()
+    while True:
+        # get old state
+        state = agent.get_state()
+        #get move
+        action = agent.get_action(state)
+        # action then new state
+        reward, done, score = agent.gm.actionSequence(action)
+        new_state = agent.get_state() 
+        #self.train_short_memory(state, action, reward, new_state, done)
+        agent.remember(state, action, reward, new_state, done)
 
-                if score > record:
-                    record = score
-                    self.model.save(record)
+        if done:
+            total_score += score
+            agent.gm.reset()
+            agent.num_games+=1
+            agent.train_long_memory()
+
+            if score > record:
+                record = score
+                agent.model.save(run_num, 'train')
+                agent.save_scores(record, total_score, run_num, 'train')
                 
+        if epochs == agent.num_games:
+            agent.model.save(run_num, 'train')
+            agent.save_scores(record, total_score, run_num, 'train')
+            break
 
+def evaluate(agent, run_num = None, epochs = None):
+    total_score = 0
+    record = 0
+    agent = agent
 
+    #resets the enviroment
+    agent.gm.reset()
+    agent.num_games = 0
+
+    while True:
+        # get old state
+        state = agent.get_state()
+        #get move
+        action = agent.get_action(state, epsilon = False)
+        # action then new state
+        _, done, score = agent.gm.actionSequence(action)
+
+        if done:
+            total_score += score
+            agent.gm.reset()
+            agent.num_games+=1
+
+            if score > record:
+                record = score
+                agent.save_scores(record, total_score, run_num, 'evaluate')
+
+        if epochs == agent.num_games:
+            agent.save_scores(record, total_score, run_num, 'evaluate')
+            break
 

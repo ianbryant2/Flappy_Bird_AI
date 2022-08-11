@@ -11,10 +11,10 @@ class typeOfGame:
     def __init__(self, gameType):
         self.gameType = gameType
     def getType(self):
-        if self.gameType.upper() == 'TRAIN' or self.gameType.upper() == 'EVALUATE':
-            return [K_AC_BACK] #Using Andriod Backspace Key because not on PC keyboard
-        elif self.gameType.upper() == 'PLAY':
+        if self.gameType.upper() == 'PLAY':
             return [K_SPACE, K_UP]
+        else:
+            return [K_AC_BACK] #Using Andriod Backspace Key because not on PC keyboard
 
 class gameManager:   
     def __init__(self, gameType, fpsCount = 5): #fps Count is number of frames between when the reward is returned after the action
@@ -103,10 +103,10 @@ class gameManager:
 
 class game:
     def __init__(self, typeGame):
-        if typeGame.gameType.upper() == 'TRAIN': #When training game runs faster so training happens faster
-            self.FPS = 3840 #May need to change if computer can not handle
-        else:
+        if typeGame.gameType.upper() == 'PLAY': 
             self.FPS = 30
+        else: #When training game runs faster so training happens faster
+            self.FPS = 7680 #May need to change if computer can not handle
         self.SCREENWIDTH  = 288
         self.SCREENHEIGHT = 512
         self.PIPEGAPSIZE  = 100 # gap between upper and lower part of pipe
@@ -193,8 +193,9 @@ class game:
 
 
 
-        #can be used to reset sprites as well as the starting velocity
+        
     def initLevel(self):
+        '''used to start initilize the level'''
         # select random background sprites
         self.randBg = random.randint(0, len(self.BACKGROUNDS_LIST) - 1)
         self.IMAGES['background'] = pygame.image.load(self.BACKGROUNDS_LIST[self.randBg]).convert()
@@ -286,6 +287,7 @@ class game:
 
 
     def showWelcomeAnimation(self):
+        '''shows the welcome animation'''
         while True:
             if self.game.gameType.upper() != 'PLAY':
                 return {
@@ -324,6 +326,7 @@ class game:
             self.FPSCLOCK.tick(self.FPS)
 
     def levelLoop(self):
+        '''completes one game loop'''
         for event in pygame.event.get():
             if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
                 pygame.quit()
