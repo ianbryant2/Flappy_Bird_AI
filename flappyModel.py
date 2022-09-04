@@ -15,6 +15,7 @@ EPSILON_START = 1.0
 EPSILON_END = .02
 EPSILON_DECAY=1000
 NUM_OF_FRAMES_TIL_CHECK = 2
+STEPS_TIL_UPDATE = 10000
 
 class model(nn.Module):
     def __init__(self, gm):
@@ -43,14 +44,13 @@ class model(nn.Module):
         torch.save(self.state_dict(), file_name)
 
 class model_trainer:
-    def __init__(self, model, alpha=ALPHA, gamma=GAMMA):
-        self.alpha = alpha
-        self.gamma = gamma
-        self.model = model
+    def __init__(self, model):
+        self.alpha = ALPHA
+        self.gamma = GAMMA
         self.optimizer = torch.optim.Adam(model.parameters(), lr = self.alpha)
         self.criterion = nn.HuberLoss()
 
-    def train_step(self, state, action, reward, new_state, done):
+    def train_step(self, state, action, reward, new_state, done, target, model):
         state = torch.tensor(state, dtype=torch.float)
         new_state = torch.tensor(new_state, dtype=torch.float)
         action = torch.tensor(action, dtype=torch.long)
@@ -66,34 +66,40 @@ class model_trainer:
             done = (done, )
 
         # 1: predicted Q values with current state
-        pred = self.model(state)
-        target = pred.clone()
+        pred = model(state)
+        # array holding format needed
+        # array will be updated in for loop undeneath to get target network Q values
+        tar = pred.clone()
         for idx in range(len(done)):
             Q_new = reward[idx]
             if not done[idx]:
-                Q_new = reward[idx] + self.gamma * torch.max(self.model(new_state[idx]))
+                Q_new = reward[idx] + self.gamma * torch.max(target(new_state[idx]))
 
-            target[idx][torch.argmax(action[idx]).item()] = Q_new
+            tar[idx][torch.argmax(action[idx]).item()] = Q_new
     
         
         self.optimizer.zero_grad()
-        loss = self.criterion(target, pred)
+        loss = self.criterion(tar, pred)
         loss.backward()
         self.optimizer.step()
 
+#TODO make model trainers that are subclasses of model trainer that have target and non target networks
+#TODO see if you can make AI learn based off of other experiences. Can put experience in replay buffer and combine seen and personal experience
 
 class agent:
-    def __init__(self, type_game, gm=flappy.gameManager, model=model, model_trainer=model_trainer, epsilon_start = EPSILON_START, epsilon_end = EPSILON_END, epsilon_decay= EPSILON_DECAY, buffer_size = BUFFER_SIZE):
+    def __init__(self, type_game, gm=flappy.gameManager, model=model, model_trainer=model_trainer):
         self.num_games = 0
+        self.num_steps = 0
         self.gamma = 0
-        self.memory = deque(maxlen=buffer_size)
+        self.memory = deque(maxlen=BUFFER_SIZE)
         self.type_game = type_game
         self.gm = gm(type_game, NUM_OF_FRAMES_TIL_CHECK)
         self.model = model(self.gm)
+        self.target = model(self.gm)
         self.trainer = model_trainer(self.model)
-        self.epsilon_start = epsilon_start
-        self.epsilon_end = epsilon_end
-        self.epsilon_decay = epsilon_decay
+        self.epsilon_start = EPSILON_START
+        self.epsilon_end = EPSILON_END
+        self.epsilon_decay = EPSILON_DECAY
 
     def get_state(self):
         return np.array(self.gm.getState(), dtype=int)
@@ -108,10 +114,7 @@ class agent:
             mini_sample = self.memory
 
         states, actions, rewards, next_states, dones = zip(*mini_sample)
-        self.trainer.train_step(states, actions, rewards, next_states, dones)
-
-    def train_short_memory(self, state, action, reward, new_state, done):
-        self.trainer.train_step(state, action, reward, new_state, done)
+        self.trainer.train_step(states, actions, rewards, next_states, dones, self.target, self.model)
 
     def get_action(self, state, epsilon = True):
         self.epsilon = np.interp(self.num_games, [0, self.epsilon_decay], [self.epsilon_start, self.epsilon_end])
@@ -121,8 +124,8 @@ class agent:
                 move = random.randint(0,1)
                 action[move]=1
             else:
-                state_t = torch.tensor(state, dtype=torch.float) #turn the state array into a tensor
-                predict = self.model(state_t)
+                state_tensor = torch.tensor(state, dtype=torch.float) #turn the state array into a tensor
+                predict = self.model(state_tensor)
                 move = torch.argmax(predict).item()
                 action[move]=1
         else:
@@ -151,6 +154,7 @@ def train(agent, run_num = None, epochs = None):  #run num is the number of diff
    #resets the enviroment
     agent.gm.reset()
     agent.num_games = 0
+    print(agent.model.linear1.weight)
 
     while True:
         # get old state
@@ -159,14 +163,19 @@ def train(agent, run_num = None, epochs = None):  #run num is the number of diff
         action = agent.get_action(state)
         # action then new state
         reward, done, score = agent.gm.actionSequence(action)
-        new_state = agent.get_state() 
-        #self.train_short_memory(state, action, reward, new_state, done)
-        agent.remember(state, action, reward, new_state, done)
+        #updates the counter of the number of steps taken
+        agent.num_steps += 1
+        #after certain number of steps update target network
+        if agent.num_steps == STEPS_TIL_UPDATE:
+            agent.target = agent.model
 
+        new_state = agent.get_state() 
+
+        agent.remember(state, action, reward, new_state, done)
         if done:
             total_score += score
             agent.gm.reset()
-            agent.num_games+=1
+            agent.num_games += 1
             agent.train_long_memory()
 
             if score > record:
@@ -208,4 +217,3 @@ def evaluate(agent, run_num = None, epochs = None):
         if epochs == agent.num_games:
             agent.save_scores(record, total_score, run_num, 'evaluate')
             break
-
