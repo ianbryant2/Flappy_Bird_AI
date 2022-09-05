@@ -34,10 +34,10 @@ def main(typeGame):
       gm.play()
    elif typeGame.upper() == 'TEST':
       agent = fm.agent(typeGame)
-      fm.train(agent,epochs=2500) #epochs here are the number of games run in order to train
+      fm.train(agent,epochs=10000) #epochs here are the number of games run in order to train
       print('starting to evaluate')
       for i in range(3): #number of times it is going to be evaluated
-         fm.evaluate(agent, run_num = i, epochs = 250) #epochs here are the number of games used when evaluating 
+         fm.evaluate(agent, run_num = i, epochs = 1000) #epochs here are the number of games used when evaluating 
          
 
 
@@ -46,3 +46,9 @@ def main(typeGame):
 
 
 main(None)
+   
+
+
+
+
+
