@@ -1,5 +1,7 @@
 
 from FlappyBird import flappy as fp
+from FlappyBird.flappy import PlayGame, TrainGame
+from FlappyBird.flappy import EvaluateGame
 import flappyModel as fm
 
 supported_types = ['PLAY', 'TRAIN', 'TEST']
@@ -26,29 +28,30 @@ def main(typeGame):
             typeGame = input('Type of Game? ')
          else:
             break
-   gm = fp.gameManager(typeGame)
+   
+
    if typeGame.upper() == 'TRAIN':
-      agent = fm.agent(typeGame)
+      gm = fp.gameManager(TrainGame())
+      agent = fm.agent(gm)
       fm.train(agent)
+
    elif typeGame.upper() == 'PLAY':
+      gm = fp.gameManager(PlayGame())
       gm.play()
+
    elif typeGame.upper() == 'TEST':
-      agent = fm.agent(typeGame)
-      fm.train(agent,epochs=10000) #epochs here are the number of games run in order to train
+
+      gm = fp.gameManager(TrainGame())
+      agent = fm.agent(gm)
+      fm.train(agent,epochs=2500) #epochs here are the number of games run in order to trains
+      gm = fp.gameManager(EvaluateGame())
+      agent.new_gm(gm)
       print('starting to evaluate')
       for i in range(3): #number of times it is going to be evaluated
-         fm.evaluate(agent, run_num = i, epochs = 1000) #epochs here are the number of games used when evaluating 
+         fm.evaluate(agent, run_num = i, epochs = 250) #epochs here are the number of games used when evaluating 
          
 
 
-
-
-
-
-main(None)
-   
-
-
-
-
+if __name__ == "__main__":
+   main('test')
 

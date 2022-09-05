@@ -6,24 +6,14 @@ from pygame.locals import *
 
 xrange = range
 
-# Used in order to handle key inputs for different games
-class typeOfGame:
-    def __init__(self, gameType):
-        self.gameType = gameType
-    def getType(self):
-        if self.gameType.upper() == 'PLAY':
-            return [K_SPACE, K_UP]
-        else:
-            return [K_AC_BACK] #Using Andriod Backspace Key because not on PC keyboard
 
 class gameManager:   
-    def __init__(self, gameType, fpsCount = 5): #fps Count is number of frames between when the reward is returned after the action
+    def __init__(self, game, fpsCount = 5): #fps Count is number of frames between when the reward is returned after the action
         self.movement = None
         self.score_check = 0
         self.fpsCount = fpsCount
-        self.typeOfGame = typeOfGame(gameType)
-        self.keyEventUp = pygame.event.Event(KEYDOWN, {'key': self.typeOfGame.getType()[0]})
-        self.game = game(self.typeOfGame)
+        self.game = game
+        self.keyEventUp = pygame.event.Event(KEYDOWN, {'key': self.game.getInputs()[0]})
         self.topCount = 0
         self.bottomCount = 0
         self.upperDistOffset = 10  #How far away from the pipe the bird has to be in order for certain reward 
@@ -102,11 +92,7 @@ class gameManager:
             self.game.showGameOverScreen(crashInfo)
 
 class game:
-    def __init__(self, typeGame):
-        if typeGame.gameType.upper() == 'PLAY': 
-            self.FPS = 30
-        else: #When training game runs faster so training happens faster
-            self.FPS = 7680 #May need to change if computer can not handle
+    def __init__(self):
         self.SCREENWIDTH  = 288
         self.SCREENHEIGHT = 512
         self.PIPEGAPSIZE  = 100 # gap between upper and lower part of pipe
@@ -151,8 +137,8 @@ class game:
 
         
         self.xrange = range
-    
-        self.game = typeGame # Used in order to handle key inputs for different games (train play etc)
+
+
         pygame.init()
         self.FPSCLOCK = pygame.time.Clock()
         self.SCREEN = pygame.display.set_mode((self.SCREENWIDTH, self.SCREENHEIGHT))
@@ -218,15 +204,15 @@ class game:
 
         # hitmask for pipes
         self.HITMASKS['pipe'] = (
-            getHitmask(self.IMAGES['pipe'][0]),
-            getHitmask(self.IMAGES['pipe'][1]),
+            self.getHitmask(self.IMAGES['pipe'][0]),
+            self.getHitmask(self.IMAGES['pipe'][1]),
         )
 
         # hitmask for player
         self.HITMASKS['player'] = (
-            getHitmask(self.IMAGES['player'][0]),
-            getHitmask(self.IMAGES['player'][1]),
-            getHitmask(self.IMAGES['player'][2]),
+            self.getHitmask(self.IMAGES['player'][0]),
+            self.getHitmask(self.IMAGES['player'][1]),
+            self.getHitmask(self.IMAGES['player'][2]),
         )
         """Shows welcome screen animation of flappy bird"""
         # index of player to blit on screen
@@ -271,8 +257,7 @@ class game:
             {'x': self.SCREENWIDTH + 200 + (self.SCREENWIDTH / 2), 'y': self.newPipe2[1]['y']},
         ]
 
-        self.dt = self.FPSCLOCK.tick(self.FPS)/1000 #change of time in seconds from the previous frame
-        self.pipeVelX = -4  # -(1/self.dt) * (1/7)
+        self.pipeVelX = -4 
 
         # player velocity, max velocity, downward acceleration, acceleration on flap
         self.playerVelY    =  -9   # player's velocity along Y, default same as playerFlapped
@@ -289,31 +274,15 @@ class game:
     def showWelcomeAnimation(self):
         '''shows the welcome animation'''
         while True:
-            if self.game.gameType.upper() != 'PLAY':
-                return {
-                        'playery': self.playery + self.playerShmVals['val'],
-                        'basex': self.basex,
-                        'playerIndexGen': self.playerIndexGen,
-                    }      
-            for event in pygame.event.get():
-                if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
-                    pygame.quit()
-                    sys.exit()
-                if event.type == KEYDOWN and (event.key in self.game.getType()):
-                    # make first flap sound and return values for mainGame
-                    #self.SOUNDS['wing'].play()
-                    return {
-                        'playery': self.playery + self.playerShmVals['val'],
-                        'basex': self.basex,
-                        'playerIndexGen': self.playerIndexGen,
-                    }
+
+            values = self.introLooper()
 
             # adjust playery, playerIndex, basex
             if (self.loopIter + 1) % 5 == 0:
                 self.playerIndex = next(self.playerIndexGen)
             self.loopIter = (self.loopIter + 1) % 30
             self.basex = -((-self.basex + 4) % self.baseShift)
-            playerShm(self.playerShmVals)
+            self.playerShm(self.playerShmVals)
 
             # draw sprites
             self.SCREEN.blit(self.IMAGES['background'], (0,0))
@@ -323,7 +292,10 @@ class game:
             self.SCREEN.blit(self.IMAGES['base'], (self.basex, self.BASEY))
 
             pygame.display.update()
-            self.FPSCLOCK.tick(self.FPS)
+            self.FPSCLOCK.tick(self.getFPS())
+
+            if values != None:
+                return values
 
     def levelLoop(self):
         '''completes one game loop'''
@@ -331,11 +303,11 @@ class game:
             if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
                 pygame.quit()
                 sys.exit()
-            if event.type == KEYDOWN and (event.key in self.game.getType()):
+            if event.type == KEYDOWN and (event.key in self.getInputs()):
                 if self.playery > -2 * self.IMAGES['player'][0].get_height():
                     self.playerVelY = self.playerFlapAcc
                     self.playerFlapped = True
-                    #self.SOUNDS['wing'].play()
+                    self.wingSound()
         
         # check for crash here
         self.crashTest = self.checkCrash({'x': self.playerx, 'y': self.playery, 'index': self.playerIndex},
@@ -358,7 +330,7 @@ class game:
             self.pipeMidPos = pipe['x'] + self.IMAGES['pipe'][0].get_width() / 2
             if self.pipeMidPos <= self.playerMidPos < self.pipeMidPos + 4:
                 self.score += 1
-                #self.SOUNDS['point'].play()
+                self.pointSound()
 
         # playerIndex basex change
         if (self.loopIter + 1) % 3 == 0:
@@ -418,7 +390,7 @@ class game:
         self.SCREEN.blit(self.playerSurface, (self.playerx, self.playery))
 
         pygame.display.update()
-        self.FPSCLOCK.tick(self.FPS)
+        self.FPSCLOCK.tick(self.getFPS())
 
     def checkCrash(self, player, upperPipes, lowerPipes):
         """returns True if player collides with base or pipes."""
@@ -447,8 +419,8 @@ class game:
                 lHitmask = self.HITMASKS['pipe'][1]
 
                 # if bird collided with upipe or lpipe
-                uCollide = pixelCollision(playerRect, uPipeRect, pHitMask, uHitmask)
-                lCollide = pixelCollision(playerRect, lPipeRect, pHitMask, lHitmask)
+                uCollide = self.pixelCollision(playerRect, uPipeRect, pHitMask, uHitmask)
+                lCollide = self.pixelCollision(playerRect, lPipeRect, pHitMask, lHitmask)
 
                 if uCollide or lCollide:
                     return [True, False]
@@ -471,17 +443,17 @@ class game:
         upperPipes, lowerPipes = crashInfo['upperPipes'], crashInfo['lowerPipes']
 
         # play hit and die sounds
-        #self.SOUNDS['hit'].play()
+        self.hitSound()
         if not crashInfo['groundCrash']:
             pass
-            #self.SOUNDS['die'].play()
+            self.dieSound()
 
         while True:
             for event in pygame.event.get():
                 if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE): 
                     pygame.quit()
                     sys.exit()
-                if event.type == KEYDOWN and (event.key in self.game.getType()):
+                if event.type == KEYDOWN and (event.key in self.getInputs()):
                     if playery + playerHeight >= self.BASEY - 1:
                         return
 
@@ -511,7 +483,7 @@ class game:
             self.SCREEN.blit(playerSurface, (playerx,playery))
             self.SCREEN.blit(self.IMAGES['gameover'], (50, 180))
 
-            self.FPSCLOCK.tick(self.FPS)
+            self.FPSCLOCK.tick(self.getFPS())
             pygame.display.update()
 
     def showScore(self,score):
@@ -541,39 +513,162 @@ class game:
             {'x': pipeX, 'y': gapY+self.PIPEGAPSIZE}, # lower pipe
         ]
 
+    def playerShm(self, playerShm):
+        """oscillates the value of playerShm['val'] between 8 and -8"""
+        if abs(playerShm['val']) == 8:
+            playerShm['dir'] *= -1
 
-# are functions that are not needed in class
-def playerShm(playerShm):
-    """oscillates the value of playerShm['val'] between 8 and -8"""
-    if abs(playerShm['val']) == 8:
-        playerShm['dir'] *= -1
+        if playerShm['dir'] == 1:
+            playerShm['val'] += 1
+        else:
+            playerShm['val'] -= 1
 
-    if playerShm['dir'] == 1:
-         playerShm['val'] += 1
-    else:
-        playerShm['val'] -= 1
+    def pixelCollision(self, rect1, rect2, hitmask1, hitmask2):
+        """Checks if two objects collide and not just their rects"""
+        rect = rect1.clip(rect2)
 
-def pixelCollision(rect1, rect2, hitmask1, hitmask2):
-    """Checks if two objects collide and not just their rects"""
-    rect = rect1.clip(rect2)
+        if rect.width == 0 or rect.height == 0:
+            return False
 
-    if rect.width == 0 or rect.height == 0:
+        x1, y1 = rect.x - rect1.x, rect.y - rect1.y
+        x2, y2 = rect.x - rect2.x, rect.y - rect2.y
+
+        for x in xrange(rect.width):
+            for y in xrange(rect.height):
+                if hitmask1[x1+x][y1+y] and hitmask2[x2+x][y2+y]:
+                    return True
         return False
-
-    x1, y1 = rect.x - rect1.x, rect.y - rect1.y
-    x2, y2 = rect.x - rect2.x, rect.y - rect2.y
-
-    for x in xrange(rect.width):
-        for y in xrange(rect.height):
-            if hitmask1[x1+x][y1+y] and hitmask2[x2+x][y2+y]:
-                return True
-    return False
+        
+    def getHitmask(self, image):
+        """returns a hitmask using an image's alpha."""
+        mask = []
+        for x in xrange(image.get_width()):
+            mask.append([])
+            for y in xrange(image.get_height()):
+                mask[x].append(bool(image.get_at((x,y))[3]))
+        return mask
     
-def getHitmask(image):
-    """returns a hitmask using an image's alpha."""
-    mask = []
-    for x in xrange(image.get_width()):
-        mask.append([])
-        for y in xrange(image.get_height()):
-            mask[x].append(bool(image.get_at((x,y))[3]))
-    return mask
+    def getFPS(self):
+        """Returns the FPS for current game"""
+        return 30
+    
+    def getInputs(self):
+        """Returns the correct input for current game"""
+        return [K_SPACE, K_UP]
+    
+    def introLooper(self):
+        """First game loop in intro screen"""
+        # May need to be differnt for training and evaulating 
+        for event in pygame.event.get():
+            if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
+                pygame.quit()
+                sys.exit()
+            if event.type == KEYDOWN and (event.key in self.getInputs()):
+                self.wingSound()
+                return {
+                    'playery': self.playery + self.playerShmVals['val'],
+                    'basex': self.basex,
+                    'playerIndexGen': self.playerIndexGen,
+                    }
+    def wingSound(self):
+        self.SOUNDS['wing'].play()
+    
+    def pointSound(self):
+        self.SOUNDS['point'].play()
+    
+    def hitSound(self):
+        self.SOUNDS['hit'].play()
+    
+    def dieSound(self):
+        self.SOUNDS['die'].play()
+
+
+class PlayGame(game):
+    def __init__(self):
+        game.__init__(self)
+       # self.type = 'PLAY'
+    def getFps(self):
+        return 30
+    def getInputs(self):
+        return [K_SPACE, K_UP]
+    def introLooper(self):
+        for event in pygame.event.get():
+            if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
+                pygame.quit()
+                sys.exit()
+            if event.type == KEYDOWN and (event.key in self.getInputs()):
+                self.wingSound()
+                return {
+                'playery': self.playery + self.playerShmVals['val'],
+                'basex': self.basex,
+                'playerIndexGen': self.playerIndexGen,
+                    }
+    def wingSound(self):
+        self.SOUNDS['wing'].play()
+    
+    def pointSound(self):
+        self.SOUNDS['point'].play()
+    
+    def hitSound(self):
+        self.SOUNDS['hit'].play()
+    
+    def dieSound(self):
+        self.SOUNDS['die'].play()
+
+class TrainGame(game):
+    def __init__(self):
+        game.__init__(self)
+
+    def getFPS(self):
+        return 3840
+
+    def getInputs(self):
+        return [K_AC_BACK] #Using Andriod Backspace Key because not on PC keyboard
+
+    def introLooper(self):
+        return {
+        'playery': self.playery + self.playerShmVals['val'],
+        'basex': self.basex,
+        'playerIndexGen': self.playerIndexGen,
+                }
+    def wingSound(self):
+        pass
+    
+    def pointSound(self):
+        pass
+    
+    def hitSound(self):
+        pass
+    
+    def dieSound(self):
+        pass
+
+class EvaluateGame(game):
+    def __init__(self, fps = 3840):
+        game.__init__()
+        self.type = 'EVALUATE'
+
+    def getFPS(self):
+        return self.fps
+
+    def getInputs(self):
+        return [K_AC_BACK] #Using Andriod Backspace Key because not on PC keyboard
+        
+    def introLooper(self):
+        return {
+        'playery': self.playery + self.playerShmVals['val'],
+        'basex': self.basex,
+        'playerIndexGen': self.playerIndexGen,
+            }
+
+    def wingSound(self):
+        pass
+    
+    def pointSound(self):
+        pass
+    
+    def hitSound(self):
+        pass
+    
+    def dieSound(self):
+        pass

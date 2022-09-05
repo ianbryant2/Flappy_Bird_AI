@@ -5,7 +5,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import os 
-from FlappyBird import flappy
 #done is game over state
 ALPHA = .001
 GAMMA = .8
@@ -83,17 +82,19 @@ class model_trainer:
 
 
 class agent:
-    def __init__(self, type_game, gm=flappy.gameManager, model=model, model_trainer=model_trainer, epsilon_start = EPSILON_START, epsilon_end = EPSILON_END, epsilon_decay= EPSILON_DECAY, buffer_size = BUFFER_SIZE):
+    def __init__(self, gm, model=model, model_trainer=model_trainer, epsilon_start = EPSILON_START, epsilon_end = EPSILON_END, epsilon_decay= EPSILON_DECAY, buffer_size = BUFFER_SIZE):
         self.num_games = 0
         self.gamma = 0
         self.memory = deque(maxlen=buffer_size)
-        self.type_game = type_game
-        self.gm = gm(type_game, NUM_OF_FRAMES_TIL_CHECK)
+        self.gm = gm
         self.model = model(self.gm)
         self.trainer = model_trainer(self.model)
         self.epsilon_start = epsilon_start
         self.epsilon_end = epsilon_end
         self.epsilon_decay = epsilon_decay
+
+    def new_gm(self, gm):
+        self.gm = gm
 
     def get_state(self):
         return np.array(self.gm.getState(), dtype=int)
