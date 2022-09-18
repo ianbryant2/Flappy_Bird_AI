@@ -13,7 +13,6 @@ BUFFER_SIZE = 700000
 EPSILON_START = 1.0
 EPSILON_END = .02
 EPSILON_DECAY=1000
-NUM_OF_FRAMES_TIL_CHECK = 2
 
 class model(nn.Module):
     def __init__(self, gm):
@@ -131,8 +130,10 @@ class agent:
             predict = self.model(state_t)
             move = torch.argmax(predict).item()
             action[move]=1
+            self.gm.setOutputs(predict)
+           
         return action
-    
+     
     def save_scores(self, record, total_score, run_num, type, file_name = 'scores.txt'):
         if run_num == None:
             model_folder_path = './model/' + str(type)
@@ -180,7 +181,7 @@ def train(agent, run_num = None, epochs = None):  #run num is the number of diff
             agent.save_scores(record, total_score, run_num, 'train')
             break
 
-def evaluate(agent, run_num = None, epochs = None):
+def evaluate(agent, run_num = None, epochs = None, file_path = None, ):
     total_score = 0
     record = 0
     agent = agent

@@ -8,7 +8,7 @@ xrange = range
 
 
 class gameManager:   
-    def __init__(self, game, fpsCount = 5): #fps Count is number of frames between when the reward is returned after the action
+    def __init__(self, game, fpsCount = 1): #fps Count is number of frames between when the reward is returned after the action
         self.movement = None
         self.score_check = 0
         self.fpsCount = fpsCount
@@ -22,6 +22,10 @@ class gameManager:
     def executeAction(self):
         if self.movement == [1,0]:
            pygame.event.post(self.keyEventUp)
+           self.game.assignAction()
+        else:
+            self.game.assignWait()
+            
 
     def action(self, action, score):
         self.movement = action
@@ -90,6 +94,11 @@ class gameManager:
             while crashInfo == None:
                 crashInfo = self.game.levelLoop()
             self.game.showGameOverScreen(crashInfo)
+    
+    def setOutputs(self, predict):#predict is a tensor
+        self.game.output1 = predict[0].item()
+        self.game.output2 = predict[1].item()
+
 
 class game:
     def __init__(self):
@@ -388,7 +397,7 @@ class game:
         
         self.playerSurface = pygame.transform.rotate(self.IMAGES['player'][self.playerIndex], self.visibleRot)
         self.SCREEN.blit(self.playerSurface, (self.playerx, self.playery))
-
+        self.showInfo()
         pygame.display.update()
         self.FPSCLOCK.tick(self.getFPS())
 
@@ -482,7 +491,6 @@ class game:
             playerSurface = pygame.transform.rotate(self.IMAGES['player'][1], playerRot)
             self.SCREEN.blit(playerSurface, (playerx,playery))
             self.SCREEN.blit(self.IMAGES['gameover'], (50, 180))
-
             self.FPSCLOCK.tick(self.getFPS())
             pygame.display.update()
 
@@ -548,6 +556,9 @@ class game:
                 mask[x].append(bool(image.get_at((x,y))[3]))
         return mask
     
+    def showInfo(self):
+        pass
+
     def getFPS(self):
         """Returns the FPS for current game"""
         return 30
@@ -581,6 +592,12 @@ class game:
     
     def dieSound(self):
         self.SOUNDS['die'].play()
+
+    def assignAction(self):
+        pass
+
+    def assignWait(self):
+        pass
 
 
 class PlayGame(game):
@@ -645,8 +662,15 @@ class TrainGame(game):
 
 class EvaluateGame(game):
     def __init__(self, fps = 3840):
-        game.__init__()
-        self.type = 'EVALUATE'
+        game.__init__(self)
+        self.fps = fps
+        self.font = pygame.font.SysFont('Courier New', 30) #Name of font then size
+        self.IMAGES['wait'] = pygame.image.load('FlappyBird/assets/sprites/added/Wait.png').convert_alpha()
+        self.IMAGES['flap'] = pygame.image.load('FlappyBird/assets/sprites/added/Flap.png').convert_alpha()
+        self.output1 = None
+        self.output2 = None
+        self.flapCount = 0 #Used to see how many frames have passed since the flap is shown
+        self.imageShown = None
 
     def getFPS(self):
         return self.fps
@@ -660,6 +684,27 @@ class EvaluateGame(game):
         'basex': self.basex,
         'playerIndexGen': self.playerIndexGen,
             }
+
+    def assignAction(self):
+        self.imageShown = self.IMAGES['flap']
+        self.flapCount = 1
+    
+    def assignWait(self):
+        if self.flapCount > 2:
+            self.flapCount = 0
+            self.imageShown = self.IMAGES['wait']
+        else:
+            self.flapCount += 1
+
+    def showInfo(self):
+        self.SCREEN.blit(self.imageShown, (150,425))
+        tOutput1 = self.font.render(str(int(self.output1)), True, (0,0,0))
+        tOutput2 = self.font.render(str(int(self.output2)), True, (0,0,0))
+        self.SCREEN.blit(tOutput1, (10,435))
+        self.SCREEN.blit(tOutput2, (10,475))
+
+    def showInfoCord(self):
+        pass
 
     def wingSound(self):
         pass

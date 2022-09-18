@@ -1,8 +1,8 @@
 
 from FlappyBird import flappy as fp
-from FlappyBird.flappy import PlayGame, TrainGame
-from FlappyBird.flappy import EvaluateGame
+from FlappyBird.flappy import PlayGame, TrainGame, EvaluateGame
 import flappyModel as fm
+import torch
 
 supported_types = ['PLAY', 'TRAIN', 'TEST']
 
@@ -39,6 +39,12 @@ def main(typeGame):
       gm = fp.gameManager(PlayGame())
       gm.play()
 
+   elif typeGame.upper() == 'EVALUATE':
+      gm = fp.gameManager(EvaluateGame(fps=30))
+      agent = fm.agent(gm)
+      agent.model.load_state_dict(torch.load("test_weights.pt"))
+      fm.evaluate(agent)
+
    elif typeGame.upper() == 'TEST':
 
       gm = fp.gameManager(TrainGame())
@@ -53,5 +59,5 @@ def main(typeGame):
 
 
 if __name__ == "__main__":
-   main('test')
+   main(None)
 
