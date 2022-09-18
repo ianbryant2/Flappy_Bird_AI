@@ -50,10 +50,10 @@ class model_trainer:
         self.criterion = nn.HuberLoss()
 
     def train_step(self, state, action, reward, new_state, done):
-        state = torch.tensor(state, dtype=torch.float)
-        new_state = torch.tensor(new_state, dtype=torch.float)
-        action = torch.tensor(action, dtype=torch.long)
-        reward = torch.tensor(reward, dtype=torch.float)
+        state = torch.tensor(np.array(state), dtype=torch.float)
+        new_state = torch.tensor(np.array(new_state), dtype=torch.float)
+        action = torch.tensor(np.array(action), dtype=torch.long)
+        reward = torch.tensor(np.array(reward), dtype=torch.float)
         # (n, x)
 
         if len(state.shape) == 1:
