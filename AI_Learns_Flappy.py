@@ -33,7 +33,7 @@ def main(typeGame):
    if typeGame.upper() == 'TRAIN':
       gm = fp.gameManager(TrainGame())
       agent = fm.agent(gm)
-      fm.train(agent)
+      fm.train(agent, plotting_scores=True)
 
    elif typeGame.upper() == 'PLAY':
       gm = fp.gameManager(PlayGame())

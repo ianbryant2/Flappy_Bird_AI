@@ -5,6 +5,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import os 
+from helper import plot
+
 #done is game over state
 ALPHA = .001
 GAMMA = .8
@@ -75,7 +77,7 @@ class model_trainer:
     
         
         self.optimizer.zero_grad()
-        loss = self.criterion(target, pred)
+        loss = self.criterion(pred, target)
         loss.backward()
         self.optimizer.step()
 
@@ -145,10 +147,12 @@ class agent:
         with open(file_name, 'w') as r:
             r.write(str(record) + '\n' + str(total_score/self.num_games))
 
-def train(agent, run_num = None, epochs = None):  #run num is the number of differnt training cycles. used to save correctly
+def train(agent, run_num = None, epochs = None, plotting_scores = False):  #run num is the number of differnt training cycles. used to save correctly
     total_score = 0
     record = 0
     agent = agent
+    plot_scores = []
+    plot_mean_scores = []
    
    #resets the enviroment
     agent.gm.reset()
@@ -175,16 +179,24 @@ def train(agent, run_num = None, epochs = None):  #run num is the number of diff
                 record = score
                 agent.model.save(run_num, 'train')
                 agent.save_scores(record, total_score, run_num, 'train')
-                
+
+            if plotting_scores: 
+                plot_scores.append(score)
+                mean_score = total_score / agent.num_games
+                plot_mean_scores.append(mean_score)
+                plot(plot_scores, plot_mean_scores, "Training...")
+      
         if epochs == agent.num_games:
             agent.model.save(run_num, 'train')
             agent.save_scores(record, total_score, run_num, 'train')
             break
 
-def evaluate(agent, run_num = None, epochs = None, file_path = None, ):
+def evaluate(agent, run_num = None, epochs = None, plotting_scores = False):
     total_score = 0
     record = 0
     agent = agent
+    plot_scores = []
+    plot_mean_scores = []
 
     #resets the enviroment
     agent.gm.reset()
@@ -206,6 +218,11 @@ def evaluate(agent, run_num = None, epochs = None, file_path = None, ):
             if score > record:
                 record = score
                 agent.save_scores(record, total_score, run_num, 'evaluate')
+            if plotting_scores: 
+                plot_scores.append(score)
+                mean_score = total_score / agent.num_games
+                plot_mean_scores.append(mean_score)
+                plot(plot_scores, plot_mean_scores, "Evaluating...")
 
         if epochs == agent.num_games:
             agent.save_scores(record, total_score, run_num, 'evaluate')
