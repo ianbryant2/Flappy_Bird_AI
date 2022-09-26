@@ -44,16 +44,7 @@ class gameManager:
             reward += -200
         else:
             reward += self.determinePosReward()
-        if crashInfo != None: #Did  Crash
-            ''' uncomment if what to see stats on whether it crashed on the top or bottom
-            if self.distanceTop > self.distanceBottom:
-                self.bottomCount += 1
-            else:
-                self.topCount += 1
-            print(self.topCount)
-            print(self.bottomCount)
-            print()
-            ''' 
+        if crashInfo != None: # Did crash
             done = True
             reward += -200
             return reward, done, score
@@ -697,11 +688,12 @@ class EvaluateGame(game):
             self.flapCount += 1
 
     def showInfo(self):
-        self.SCREEN.blit(self.imageShown, (150,425))
-        tOutput1 = self.font.render(str(int(self.output1)), True, (0,0,0))
-        tOutput2 = self.font.render(str(int(self.output2)), True, (0,0,0))
-        self.SCREEN.blit(tOutput1, (10,435))
-        self.SCREEN.blit(tOutput2, (10,475))
+        if self.imageShown != None:
+            self.SCREEN.blit(self.imageShown, (150,425))
+            tOutput1 = self.font.render(str(int(self.output1)), True, (0,0,0))
+            tOutput2 = self.font.render(str(int(self.output2)), True, (0,0,0))
+            self.SCREEN.blit(tOutput1, (10,435))
+            self.SCREEN.blit(tOutput2, (10,475))
 
     def showInfoCord(self):
         pass
