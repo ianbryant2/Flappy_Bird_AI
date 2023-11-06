@@ -38,7 +38,7 @@ def main(typeGame):
    try:
       epoch = int(sys.argv[3])
    except:
-      if typeGame.upper() == 'EVALUATE':
+      if typeGame != None and typeGame.upper() == 'EVALUATE':
          epoch = None
       else:
          epoch = 2500
@@ -66,7 +66,7 @@ def main(typeGame):
    elif typeGame.upper() == 'EVALUATE':
       gm = fp.gameManager(EvaluateGame(file_dir = file_dir, fps = fps))
       agent = fm.agent(gm)
-      agent.model.load_state_dict(torch.load("test_weights.pt"))
+      agent.model.load_state_dict(torch.load(file_dir + '/test_weights.pt'))
       fm.evaluate(agent)
 
    elif typeGame.upper() == 'TEST':

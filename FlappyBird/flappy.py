@@ -656,8 +656,8 @@ class EvaluateGame(game):
         game.__init__(self, file_dir)
         self.fps = fps
         self.font = pygame.font.SysFont('Courier New', 30) #Name of font then size
-        self.IMAGES['wait'] = pygame.image.load('FlappyBird/assets/sprites/added/Wait.png').convert_alpha()
-        self.IMAGES['flap'] = pygame.image.load('FlappyBird/assets/sprites/added/Flap.png').convert_alpha()
+        self.IMAGES['wait'] = pygame.image.load(file_dir + '/FlappyBird/assets/sprites/added/Wait.png').convert_alpha()
+        self.IMAGES['flap'] = pygame.image.load(file_dir + '/FlappyBird/assets/sprites/added/Flap.png').convert_alpha()
         self.output1 = None
         self.output2 = None
         self.flapCount = 0 #Used to see how many frames have passed since the flap is shown
