@@ -36,7 +36,10 @@ def main(typeGame):
       fps = 30
    
    try:
-      epoch = int(sys.argv[3])
+      if sys.argv[3].upper() == 'INFINITE':
+         epoch = None
+      else:
+         epoch = int(sys.argv[3])
    except:
       if typeGame != None and typeGame.upper() == 'EVALUATE':
          epoch = None
@@ -67,7 +70,7 @@ def main(typeGame):
       gm = fp.gameManager(EvaluateGame(file_dir = file_dir, fps = fps))
       agent = fm.agent(gm)
       agent.model.load_state_dict(torch.load(file_dir + '/test_weights.pt'))
-      fm.evaluate(agent)
+      fm.evaluate(agent, epochs = epoch)
 
    elif typeGame.upper() == 'TEST':
 

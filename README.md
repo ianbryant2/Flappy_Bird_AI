@@ -101,6 +101,7 @@ If not provided the program will default to 30 fps.
 
 __epoch:__ Will be the amount of epochs the agent will either train, evaluate, or train during test.
 If not provided the program will defalut to 2500 epochs.
+If the word ```Infinite``` is put in, there will be no limit to the epochs
 
 
 
