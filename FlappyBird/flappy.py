@@ -92,7 +92,7 @@ class gameManager:
 
 
 class game:
-    def __init__(self):
+    def __init__(self, file_dir = ''):
         self.SCREENWIDTH  = 288
         self.SCREENHEIGHT = 512
         self.PIPEGAPSIZE  = 100 # gap between upper and lower part of pipe
@@ -104,34 +104,34 @@ class game:
         self.PLAYERS_LIST = (
             # red bird
             (
-                'FlappyBird/assets/sprites/redbird-upflap.png',
-                'FlappyBird/assets/sprites/redbird-midflap.png',
-                'FlappyBird/assets/sprites/redbird-downflap.png',
+                file_dir + '/FlappyBird/assets/sprites/redbird-upflap.png',
+                file_dir + '/FlappyBird/assets/sprites/redbird-midflap.png',
+                file_dir + '/FlappyBird/assets/sprites/redbird-downflap.png',
             ),
             # blue bird
             (
-                'FlappyBird/assets/sprites/bluebird-upflap.png',
-                'FlappyBird/assets/sprites/bluebird-midflap.png',
-                'FlappyBird/assets/sprites/bluebird-downflap.png',
+                file_dir + '/FlappyBird/assets/sprites/bluebird-upflap.png',
+                file_dir + '/FlappyBird/assets/sprites/bluebird-midflap.png',
+                file_dir + '/FlappyBird/assets/sprites/bluebird-downflap.png',
             ),
             # yellow bird
             (
-                'FlappyBird/assets/sprites/yellowbird-upflap.png',
-                'FlappyBird/assets/sprites/yellowbird-midflap.png',
-                'FlappyBird/assets/sprites/yellowbird-downflap.png',
+                file_dir + '/FlappyBird/assets/sprites/yellowbird-upflap.png',
+                file_dir + '/FlappyBird/assets/sprites/yellowbird-midflap.png',
+                file_dir + '/FlappyBird/assets/sprites/yellowbird-downflap.png',
             ),
         )
 
         # list of backgrounds
         self.BACKGROUNDS_LIST = (
-            'FlappyBird/assets/sprites/background-day.png',
-            'FlappyBird/assets/sprites/background-night.png',
+            file_dir + '/FlappyBird/assets/sprites/background-day.png',
+            file_dir + '/FlappyBird/assets/sprites/background-night.png',
         )
 
         # list of pipes
         self.PIPES_LIST = (
-            'FlappyBird/assets/sprites/pipe-green.png',
-            'FlappyBird/assets/sprites/pipe-red.png',
+            file_dir + '/FlappyBird/assets/sprites/pipe-green.png',
+            file_dir + '/FlappyBird/assets/sprites/pipe-red.png',
         )
 
 
@@ -146,24 +146,24 @@ class game:
 
         # numbers sprites for score display
         self.IMAGES['numbers'] = (
-            pygame.image.load('FlappyBird/assets/sprites/0.png').convert_alpha(),
-            pygame.image.load('FlappyBird/assets/sprites/1.png').convert_alpha(),
-            pygame.image.load('FlappyBird/assets/sprites/2.png').convert_alpha(),
-            pygame.image.load('FlappyBird/assets/sprites/3.png').convert_alpha(),
-            pygame.image.load('FlappyBird/assets/sprites/4.png').convert_alpha(),
-            pygame.image.load('FlappyBird/assets/sprites/5.png').convert_alpha(),
-            pygame.image.load('FlappyBird/assets/sprites/6.png').convert_alpha(),
-            pygame.image.load('FlappyBird/assets/sprites/7.png').convert_alpha(),
-            pygame.image.load('FlappyBird/assets/sprites/8.png').convert_alpha(),
-            pygame.image.load('FlappyBird/assets/sprites/9.png').convert_alpha()
+            pygame.image.load(file_dir + '/FlappyBird/assets/sprites/0.png').convert_alpha(),
+            pygame.image.load(file_dir + '/FlappyBird/assets/sprites/1.png').convert_alpha(),
+            pygame.image.load(file_dir + '/FlappyBird/assets/sprites/2.png').convert_alpha(),
+            pygame.image.load(file_dir + '/FlappyBird/assets/sprites/3.png').convert_alpha(),
+            pygame.image.load(file_dir + '/FlappyBird/assets/sprites/4.png').convert_alpha(),
+            pygame.image.load(file_dir + '/FlappyBird/assets/sprites/5.png').convert_alpha(),
+            pygame.image.load(file_dir + '/FlappyBird/assets/sprites/6.png').convert_alpha(),
+            pygame.image.load(file_dir + '/FlappyBird/assets/sprites/7.png').convert_alpha(),
+            pygame.image.load(file_dir + '/FlappyBird/assets/sprites/8.png').convert_alpha(),
+            pygame.image.load(file_dir + '/FlappyBird/assets/sprites/9.png').convert_alpha()
         )
 
         # game over sprite
-        self.IMAGES['gameover'] = pygame.image.load('FlappyBird/assets/sprites/gameover.png').convert_alpha()
+        self.IMAGES['gameover'] = pygame.image.load(file_dir + '/FlappyBird/assets/sprites/gameover.png').convert_alpha()
         # message sprite for welcome screen
-        self.IMAGES['message'] = pygame.image.load('FlappyBird/assets/sprites/message.png').convert_alpha()
+        self.IMAGES['message'] = pygame.image.load(file_dir + '/FlappyBird/assets/sprites/message.png').convert_alpha()
         # base (ground) sprite
-        self.IMAGES['base'] = pygame.image.load('FlappyBird/assets/sprites/base.png').convert_alpha()
+        self.IMAGES['base'] = pygame.image.load(file_dir + '/FlappyBird/assets/sprites/base.png').convert_alpha()
 
         # sounds
         if 'win' in sys.platform:
@@ -171,11 +171,11 @@ class game:
         else:
             self.soundExt = '.ogg'
 
-        self.SOUNDS['die']    = pygame.mixer.Sound('FlappyBird/assets/audio/die' + self.soundExt)
-        self.SOUNDS['hit']    = pygame.mixer.Sound('FlappyBird/assets/audio/hit' + self.soundExt)
-        self.SOUNDS['point']  = pygame.mixer.Sound('FlappyBird/assets/audio/point' + self.soundExt)
-        self.SOUNDS['swoosh'] = pygame.mixer.Sound('FlappyBird/assets/audio/swoosh' + self.soundExt)
-        self.SOUNDS['wing']   = pygame.mixer.Sound('FlappyBird/assets/audio/wing' + self.soundExt)
+        self.SOUNDS['die']    = pygame.mixer.Sound(file_dir + '/FlappyBird/assets/audio/die' + self.soundExt)
+        self.SOUNDS['hit']    = pygame.mixer.Sound(file_dir + '/FlappyBird/assets/audio/hit' + self.soundExt)
+        self.SOUNDS['point']  = pygame.mixer.Sound(file_dir + '/FlappyBird/assets/audio/point' + self.soundExt)
+        self.SOUNDS['swoosh'] = pygame.mixer.Sound(file_dir + '/FlappyBird/assets/audio/swoosh' + self.soundExt)
+        self.SOUNDS['wing']   = pygame.mixer.Sound(file_dir + '/FlappyBird/assets/audio/wing' + self.soundExt)
 
 
 
@@ -592,8 +592,8 @@ class game:
 
 
 class PlayGame(game):
-    def __init__(self):
-        game.__init__(self)
+    def __init__(self, file_dir = ''):
+        game.__init__(self, file_dir = file_dir)
        # self.type = 'PLAY'
     def getFps(self):
         return 30
@@ -624,8 +624,8 @@ class PlayGame(game):
         self.SOUNDS['die'].play()
 
 class TrainGame(game):
-    def __init__(self):
-        game.__init__(self)
+    def __init__(self, file_dir = ''):
+        game.__init__(self, file_dir)
 
     def getFPS(self):
         return 3840
@@ -652,8 +652,8 @@ class TrainGame(game):
         pass
 
 class EvaluateGame(game):
-    def __init__(self, fps = 3840):
-        game.__init__(self)
+    def __init__(self, file_dir = '', fps = 3840):
+        game.__init__(self, file_dir)
         self.fps = fps
         self.font = pygame.font.SysFont('Courier New', 30) #Name of font then size
         self.IMAGES['wait'] = pygame.image.load('FlappyBird/assets/sprites/added/Wait.png').convert_alpha()

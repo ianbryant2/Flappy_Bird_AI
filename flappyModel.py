@@ -218,6 +218,7 @@ def evaluate(agent, run_num = None, epochs = None, plotting_scores = False):
             if score > record:
                 record = score
                 agent.save_scores(record, total_score, run_num, 'evaluate')
+                
             if plotting_scores: 
                 plot_scores.append(score)
                 mean_score = total_score / agent.num_games

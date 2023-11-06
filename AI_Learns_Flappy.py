@@ -3,8 +3,12 @@ from FlappyBird import flappy as fp
 from FlappyBird.flappy import PlayGame, TrainGame, EvaluateGame
 import flappyModel as fm
 import torch
+import os 
+import sys
 
-supported_types = ['PLAY', 'TRAIN', 'TEST']
+file_dir = os.path.dirname(os.path.realpath(__file__))
+
+supported_types = ['PLAY', 'TRAIN', 'TEST', 'EVALUATE']
 
 def correct_Punctuation(supported_Types):
    '''Adds the correct punctuation to the supported types'''
@@ -20,6 +24,26 @@ def correct_Punctuation(supported_Types):
 
 def main(typeGame):
    '''Prompts user for what game then runs it'''
+
+   try:
+      typeGame = sys.argv[1]
+   except:
+      typeGame = None
+   
+   try:
+      fps = int(sys.argv[2])
+   except:
+      fps = 30
+   
+   try:
+      epoch = int(sys.argv[3])
+   except:
+      if typeGame.upper() == 'EVALUATE':
+         epoch = None
+      else:
+         epoch = 2500
+
+
    if typeGame == None:
       typeGame = input('Type of Game? ')
       while True:  
@@ -31,26 +55,26 @@ def main(typeGame):
    
 
    if typeGame.upper() == 'TRAIN':
-      gm = fp.gameManager(TrainGame())
+      gm = fp.gameManager(TrainGame(file_dir = file_dir))
       agent = fm.agent(gm)
-      fm.train(agent, plotting_scores=True)
+      fm.train(agent, epochs = epoch, plotting_scores=True)
 
    elif typeGame.upper() == 'PLAY':
-      gm = fp.gameManager(PlayGame())
+      gm = fp.gameManager(PlayGame(file_dir = file_dir))
       gm.play()
 
    elif typeGame.upper() == 'EVALUATE':
-      gm = fp.gameManager(EvaluateGame(fps=30))
+      gm = fp.gameManager(EvaluateGame(file_dir = file_dir, fps = fps))
       agent = fm.agent(gm)
       agent.model.load_state_dict(torch.load("test_weights.pt"))
       fm.evaluate(agent)
 
    elif typeGame.upper() == 'TEST':
 
-      gm = fp.gameManager(TrainGame())
+      gm = fp.gameManager(TrainGame(file_dir = file_dir))
       agent = fm.agent(gm)
-      fm.train(agent,epochs=2500) #epochs here are the number of games run in order to trains
-      gm = fp.gameManager(EvaluateGame())
+      fm.train(agent,epochs=epoch) #epochs here are the number of games run in order to trains
+      gm = fp.gameManager(EvaluateGame(file_dir = file_dir))
       agent.new_gm(gm)
       print('starting to evaluate')
       for i in range(3): #number of times it is going to be evaluated
