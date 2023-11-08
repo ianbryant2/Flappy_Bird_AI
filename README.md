@@ -31,7 +31,7 @@ Setup (Tested on Windows with Python 3.10.11)
 (Note there may be issues installing the dependencies on later versions of Python)
 
 ```bash
-git clone https://github.com/BananaBob-IQ/Flappy_Bird_AI
+git clone https://github.com/ianbryant2/Flappy_Bird_AI
 ```
 
 or download the zip and extract
