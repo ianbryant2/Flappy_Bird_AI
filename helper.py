@@ -3,7 +3,8 @@ from IPython import display
 
 plt.ion()
 
-def plot(scores, mean_scores, type_game):
+def plot(scores, mean_scores, type_game) -> None:
+    '''Will plot information about game'''
     display.clear_output(wait=True)
     display.display(plt.gcf())
     plt.clf()

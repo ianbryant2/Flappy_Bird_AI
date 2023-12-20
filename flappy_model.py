@@ -1,11 +1,13 @@
 from collections import deque
 import random
 import numpy as np
+import numpy.typing as npt
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import os 
 from helper import plot
+from FlappyBird import flappy
 
 #done is game over state
 ALPHA = .001
@@ -16,12 +18,13 @@ EPSILON_START = 1.0
 EPSILON_END = .02
 EPSILON_DECAY=1000
 
-class model(nn.Module):
-    def __init__(self, gm):
+class Model(nn.Module):
+    '''Represents the Deep Q Learning model'''
+    def __init__(self, gm : flappy.GameManager):
         super().__init__()
-        self.linear1 = nn.Linear(len(gm.getState()),24)
+        self.linear1 = nn.Linear(len(gm.get_state()),24)
         self.linear2 = nn.Linear(24,12)
-        self.linear3=nn.Linear(12,2)
+        self.linear3 = nn.Linear(12,2)
 
     def forward(self, x):
         x = self.linear1(x)
@@ -32,6 +35,7 @@ class model(nn.Module):
         return x
         
     def save(self, run_num, type, file_name='best_weights.pt'):
+        '''Will save the model in the folder model in the dir that the script was run in'''
         if run_num == None:
             model_folder_path = './model/' + str(type) 
         else: 
@@ -42,15 +46,16 @@ class model(nn.Module):
 
         torch.save(self.state_dict(), file_name)
 
-class model_trainer:
-    def __init__(self, model, alpha=ALPHA, gamma=GAMMA):
-        self.alpha = alpha
+class ModelTrainer:
+    '''Represents the trainer that will use the Q learning algorthim to train the model'''
+    def __init__(self, model : Model, alpha=ALPHA, gamma=GAMMA):
         self.gamma = gamma
         self.model = model
-        self.optimizer = torch.optim.Adam(model.parameters(), lr = self.alpha)
+        self.optimizer = torch.optim.Adam(model.parameters(), lr = alpha)
         self.criterion = nn.HuberLoss()
 
     def train_step(self, state, action, reward, new_state, done):
+        '''Will train a single step'''
         state = torch.tensor(np.array(state), dtype=torch.float)
         new_state = torch.tensor(np.array(new_state), dtype=torch.float)
         action = torch.tensor(np.array(action), dtype=torch.long)
@@ -66,7 +71,7 @@ class model_trainer:
             done = (done, )
 
         # 1: predicted Q values with current state
-        pred = self.model(state)
+        pred = self.model(state) # Returns a torch.Tensor
         target = pred.clone()
         for idx in range(len(done)):
             Q_new = reward[idx]
@@ -77,13 +82,14 @@ class model_trainer:
     
         
         self.optimizer.zero_grad()
-        loss = self.criterion(pred, target)
+        loss = self.criterion(pred, target) #Returns a torch.Tensor
         loss.backward()
         self.optimizer.step()
 
 
-class agent:
-    def __init__(self, gm, model=model, model_trainer=model_trainer, epsilon_start = EPSILON_START, epsilon_end = EPSILON_END, epsilon_decay= EPSILON_DECAY, buffer_size = BUFFER_SIZE):
+class Agent:
+    '''Represents an deep q agent that will interact in the game environment'''
+    def __init__(self, gm : flappy.GameManager, model=Model, model_trainer=ModelTrainer, epsilon_start = EPSILON_START, epsilon_end = EPSILON_END, epsilon_decay= EPSILON_DECAY, buffer_size = BUFFER_SIZE):
         self.num_games = 0
         self.gamma = 0
         self.memory = deque(maxlen=buffer_size)
@@ -94,28 +100,31 @@ class agent:
         self.epsilon_end = epsilon_end
         self.epsilon_decay = epsilon_decay
 
-    def new_gm(self, gm):
-        self.gm = gm
 
-    def get_state(self):
-        return np.array(self.gm.getState(), dtype=int)
+    def get_state(self) -> npt.NDArray:
+        '''Will return an array that represents the current state'''
+        return np.array(self.gm.get_state(), dtype=int)
 
-    def remember(self, state, action, reward, new_state, done):
+    def remember(self, state : npt.NDArray, action : list[int], reward : float, new_state : npt.NDArray, done : bool) -> None:
+        '''Will remeber information about current state and results from action'''
         self.memory.append((state, action, reward, new_state, done))
 
-    def train_long_memory(self):
+    def train_long_memory(self) -> None:
+        '''Will train everything that is in the memory
+        If there are more than BATCH_SIZE elements in the array then random elements will be picked from memory'''
         if len(self.memory) > BATCH_SIZE:
             mini_sample = random.sample(self.memory, BATCH_SIZE) # list of tuples
         else:
             mini_sample = self.memory
 
+        #TODO look into types of these variables
         states, actions, rewards, next_states, dones = zip(*mini_sample)
         self.trainer.train_step(states, actions, rewards, next_states, dones)
 
-    def train_short_memory(self, state, action, reward, new_state, done):
-        self.trainer.train_step(state, action, reward, new_state, done)
-
-    def get_action(self, state, epsilon = True):
+    def get_action(self, state, epsilon = True) -> list[int]:
+        '''Will use the Epsilon-Greedy policy in order to determine what action to take
+        An agent using this policy will gradually use less and less random inputs throughout training and 
+        will more and more get inputs from the model'''
         self.epsilon = np.interp(self.num_games, [0, self.epsilon_decay], [self.epsilon_start, self.epsilon_end])
         action = [0,0]
         if epsilon:
@@ -132,11 +141,12 @@ class agent:
             predict = self.model(state_t)
             move = torch.argmax(predict).item()
             action[move]=1
-            self.gm.setOutputs(predict)
+            self.gm.set_outputs(predict)
            
         return action
      
-    def save_scores(self, record, total_score, run_num, type, file_name = 'scores.txt'):
+    def save_scores(self, record, total_score, run_num, type, file_name='scores.txt') -> None:
+        '''Will save the information about scores in a directory called model in the running directory'''
         if run_num == None:
             model_folder_path = './model/' + str(type)
         else: 
@@ -147,7 +157,9 @@ class agent:
         with open(file_name, 'w') as r:
             r.write(str(record) + '\n' + str(total_score/self.num_games))
 
-def train(agent, run_num = None, epochs = None, plotting_scores = False):  #run num is the number of differnt training cycles. used to save correctly
+#TODO need to look into how pygame can stop this from happening
+def train(agent : Agent, run_num : int=None, epochs:int=None, plotting_scores = False) -> None:
+    '''Will train an agent for the given amount of epochs. The run num is how many training cycles'''
     total_score = 0
     record = 0
     agent = agent
@@ -164,9 +176,8 @@ def train(agent, run_num = None, epochs = None, plotting_scores = False):  #run 
         #get move
         action = agent.get_action(state)
         # action then new state
-        reward, done, score = agent.gm.actionSequence(action)
+        reward, done, score = agent.gm.action_sequence(action)
         new_state = agent.get_state() 
-        #self.train_short_memory(state, action, reward, new_state, done)
         agent.remember(state, action, reward, new_state, done)
 
         if done:
@@ -191,7 +202,8 @@ def train(agent, run_num = None, epochs = None, plotting_scores = False):  #run 
             agent.save_scores(record, total_score, run_num, 'train')
             break
 
-def evaluate(agent, run_num = None, epochs = None, plotting_scores = False):
+def evaluate(agent : Agent, run_num:int=None, epochs:int=None, plotting_scores=False) -> None:
+    '''Will evaluate an agent given amount of epochs. The run num is how many evaluation cycles'''
     total_score = 0
     record = 0
     agent = agent
@@ -208,7 +220,7 @@ def evaluate(agent, run_num = None, epochs = None, plotting_scores = False):
         #get move
         action = agent.get_action(state, epsilon = False)
         # action then new state
-        _, done, score = agent.gm.actionSequence(action)
+        _, done, score = agent.gm.action_sequence(action)
 
         if done:
             total_score += score

@@ -10,7 +10,7 @@ Future Features/Improvements
 
 (Going from most important to least)
 
-1. Clean up code (better variable names, docstrings, and type annotations)
+1. Seperate view from model in the game in order to train faster
 
 1. Able to load weights from previous training 
 
@@ -49,7 +49,7 @@ How To Use
 Run:
 
 ```bash
-python -m path\to\AI_Learns_Flappy.py
+python -m path\to\main.py
 ```
 
 When prompted in the terminal type in either:
@@ -91,7 +91,7 @@ How To Run With Command-Line Arguements
 The program can also take command line arguments:
 
 ```bash
-python -m path\to\AI_Learns_Flappy.py (type_game) (fps) (epoch)
+python -m path\to\main.py (type_game) (fps) (epoch)
 ```
 __type_game:__ Can either enter play, train, evaluate, or test. Every type except test has the same functionality as described above. Test will train an AI for a certain amount of epochs and then evaluate it for 250 epochs.
 If not provided the program will prompt the user for the game.
