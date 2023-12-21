@@ -47,10 +47,10 @@ class FlappyGameManager:
             self.game.show_game_over_screen(crashInfo)
     
     #TODO update so that no random attributes are assigned and that the predict does not need to be a tensor 
-    def set_outputs(self, predict : 'torch.Tensor'):
+    def set_outputs(self, predict : list[float]):
         '''Will update values that should be displayed during evaluation'''
-        self.game.output1 = predict[0].item()
-        self.game.output2 = predict[1].item()
+        self.game.output1 = predict[0]
+        self.game.output2 = predict[1]
 
     #TODO potentially update action to be a named tuple
     def _action(self, action : list[int], score : int):

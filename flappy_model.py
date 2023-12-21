@@ -141,7 +141,7 @@ class Agent:
             predict = self.model(state_t)
             move = torch.argmax(predict).item()
             action[move]=1
-            self.gm.set_outputs(predict)
+            self.gm.set_outputs(predict.tolist())
            
         return action
      
