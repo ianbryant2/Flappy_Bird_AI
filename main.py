@@ -1,5 +1,5 @@
-
-from FlappyBird.flappy import PlayGame, TrainGame, EvaluateGame, GameManager
+from flappy_bird.flappy_game_types import FlappyPlayGame, FlappyEvaluateGame, FlappyTrainGame
+from flappy_bird.flappy_manager import FlappyGameManager
 import flappy_model as fm
 import torch
 import os 
@@ -43,26 +43,26 @@ def main() -> None:
    
 
    if type_game.upper() == 'TRAIN':
-      gm = GameManager(TrainGame(file_dir = FILE_DIR))
+      gm = FlappyGameManager(FlappyTrainGame(file_dir = FILE_DIR))
       agent = fm.Agent(gm)
       fm.train(agent, epochs = epoch, plotting_scores=True)
 
    elif type_game.upper() == 'PLAY':
-      gm = GameManager(PlayGame(file_dir = FILE_DIR))
+      gm = FlappyGameManager(FlappyPlayGame(file_dir = FILE_DIR))
       gm.play()
 
    elif type_game.upper() == 'EVALUATE':
-      gm = GameManager(EvaluateGame(file_dir = FILE_DIR, fps = fps))
+      gm = FlappyGameManager(FlappyEvaluateGame(file_dir = FILE_DIR, fps = fps))
       agent = fm.Agent(gm)
       agent.model.load_state_dict(torch.load(FILE_DIR + '/test_weights.pt'))
       fm.evaluate(agent, epochs = epoch)
 
    elif type_game.upper() == 'TEST':
 
-      gm = GameManager(TrainGame(file_dir = FILE_DIR))
+      gm = FlappyGameManager(FlappyTrainGame(file_dir = FILE_DIR))
       agent = fm.Agent(gm)
       fm.train(agent,epochs=epoch) #epochs here are the number of games run in order to trains
-      gm = GameManager(EvaluateGame(file_dir = FILE_DIR))
+      gm = FlappyGameManager(FlappyEvaluateGame(file_dir = FILE_DIR))
       agent.gm = gm
       print('starting to evaluate')
       for i in range(3): #number of times it is going to be evaluated
@@ -85,4 +85,3 @@ def _correct_punctuation(supported_types : list[str]) -> str:
 
 if __name__ == "__main__":
    main()
-

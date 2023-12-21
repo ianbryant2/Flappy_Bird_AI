@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import os 
 from helper import plot
-from FlappyBird import flappy
+from flappy_bird.flappy_manager import FlappyGameManager
 
 #done is game over state
 ALPHA = .001
@@ -20,7 +20,7 @@ EPSILON_DECAY=1000
 
 class Model(nn.Module):
     '''Represents the Deep Q Learning model'''
-    def __init__(self, gm : flappy.GameManager):
+    def __init__(self, gm : FlappyGameManager):
         super().__init__()
         self.linear1 = nn.Linear(len(gm.get_state()),24)
         self.linear2 = nn.Linear(24,12)
@@ -89,7 +89,7 @@ class ModelTrainer:
 
 class Agent:
     '''Represents an deep q agent that will interact in the game environment'''
-    def __init__(self, gm : flappy.GameManager, model=Model, model_trainer=ModelTrainer, epsilon_start = EPSILON_START, epsilon_end = EPSILON_END, epsilon_decay= EPSILON_DECAY, buffer_size = BUFFER_SIZE):
+    def __init__(self, gm : FlappyGameManager, model=Model, model_trainer=ModelTrainer, epsilon_start = EPSILON_START, epsilon_end = EPSILON_END, epsilon_decay= EPSILON_DECAY, buffer_size = BUFFER_SIZE):
         self.num_games = 0
         self.gamma = 0
         self.memory = deque(maxlen=buffer_size)
@@ -240,4 +240,3 @@ def evaluate(agent : Agent, run_num:int=None, epochs:int=None, plotting_scores=F
         if epochs == agent.num_games:
             agent.save_scores(record, total_score, run_num, 'evaluate')
             break
-

@@ -3,7 +3,10 @@ import random
 import sys
 import pygame
 
-class Game:
+SPRITES_DIR = '/flappy_bird/assets/sprites'
+AUDIOS_DIR = '/flappy_bird/assets/audio'
+
+class FlappyGame:
     def __init__(self, file_dir : str = '') -> None:
         self.SCREEN_WIDTH  = 288
         self.SCREEN_HEIGHT = 512
@@ -20,34 +23,34 @@ class Game:
         self.PLAYERS_LIST = (
             # red bird
             (
-                file_dir + '/FlappyBird/assets/sprites/redbird-upflap.png',
-                file_dir + '/FlappyBird/assets/sprites/redbird-midflap.png',
-                file_dir + '/FlappyBird/assets/sprites/redbird-downflap.png',
+                file_dir + SPRITES_DIR + '/redbird-upflap.png',
+                file_dir + SPRITES_DIR + '/redbird-midflap.png',
+                file_dir + SPRITES_DIR + '/redbird-downflap.png',
             ),
             # blue bird
             (
-                file_dir + '/FlappyBird/assets/sprites/bluebird-upflap.png',
-                file_dir + '/FlappyBird/assets/sprites/bluebird-midflap.png',
-                file_dir + '/FlappyBird/assets/sprites/bluebird-downflap.png',
+                file_dir + SPRITES_DIR + '/bluebird-upflap.png',
+                file_dir + SPRITES_DIR + '/bluebird-midflap.png',
+                file_dir + SPRITES_DIR + '/bluebird-downflap.png',
             ),
             # yellow bird
             (
-                file_dir + '/FlappyBird/assets/sprites/yellowbird-upflap.png',
-                file_dir + '/FlappyBird/assets/sprites/yellowbird-midflap.png',
-                file_dir + '/FlappyBird/assets/sprites/yellowbird-downflap.png',
+                file_dir + SPRITES_DIR + '/yellowbird-upflap.png',
+                file_dir + SPRITES_DIR + '/yellowbird-midflap.png',
+                file_dir + SPRITES_DIR + '/yellowbird-downflap.png',
             ),
         )
 
         # list of backgrounds
         self.BACKGROUNDS_LIST = (
-            file_dir + '/FlappyBird/assets/sprites/background-day.png',
-            file_dir + '/FlappyBird/assets/sprites/background-night.png',
+            file_dir + SPRITES_DIR + '/background-day.png',
+            file_dir + SPRITES_DIR + '/background-night.png',
         )
 
         # list of pipes
         self.PIPES_LIST = (
-            file_dir + '/FlappyBird/assets/sprites/pipe-green.png',
-            file_dir + '/FlappyBird/assets/sprites/pipe-red.png',
+            file_dir + SPRITES_DIR + '/pipe-green.png',
+            file_dir + SPRITES_DIR + '/pipe-red.png',
         )
 
 
@@ -62,24 +65,24 @@ class Game:
 
         # numbers sprites for score display
         self.IMAGES['numbers'] = (
-            pygame.image.load(file_dir + '/FlappyBird/assets/sprites/0.png').convert_alpha(),
-            pygame.image.load(file_dir + '/FlappyBird/assets/sprites/1.png').convert_alpha(),
-            pygame.image.load(file_dir + '/FlappyBird/assets/sprites/2.png').convert_alpha(),
-            pygame.image.load(file_dir + '/FlappyBird/assets/sprites/3.png').convert_alpha(),
-            pygame.image.load(file_dir + '/FlappyBird/assets/sprites/4.png').convert_alpha(),
-            pygame.image.load(file_dir + '/FlappyBird/assets/sprites/5.png').convert_alpha(),
-            pygame.image.load(file_dir + '/FlappyBird/assets/sprites/6.png').convert_alpha(),
-            pygame.image.load(file_dir + '/FlappyBird/assets/sprites/7.png').convert_alpha(),
-            pygame.image.load(file_dir + '/FlappyBird/assets/sprites/8.png').convert_alpha(),
-            pygame.image.load(file_dir + '/FlappyBird/assets/sprites/9.png').convert_alpha()
+            pygame.image.load(file_dir + SPRITES_DIR + '/0.png').convert_alpha(),
+            pygame.image.load(file_dir + SPRITES_DIR + '/1.png').convert_alpha(),
+            pygame.image.load(file_dir + SPRITES_DIR + '/2.png').convert_alpha(),
+            pygame.image.load(file_dir + SPRITES_DIR + '/3.png').convert_alpha(),
+            pygame.image.load(file_dir + SPRITES_DIR + '/4.png').convert_alpha(),
+            pygame.image.load(file_dir + SPRITES_DIR + '/5.png').convert_alpha(),
+            pygame.image.load(file_dir + SPRITES_DIR + '/6.png').convert_alpha(),
+            pygame.image.load(file_dir + SPRITES_DIR + '/7.png').convert_alpha(),
+            pygame.image.load(file_dir + SPRITES_DIR + '/8.png').convert_alpha(),
+            pygame.image.load(file_dir + SPRITES_DIR + '/9.png').convert_alpha()
         )
 
         # game over sprite
-        self.IMAGES['gameover'] = pygame.image.load(file_dir + '/FlappyBird/assets/sprites/gameover.png').convert_alpha()
+        self.IMAGES['gameover'] = pygame.image.load(file_dir + SPRITES_DIR + '/gameover.png').convert_alpha()
         # message sprite for welcome screen
-        self.IMAGES['message'] = pygame.image.load(file_dir + '/FlappyBird/assets/sprites/message.png').convert_alpha()
+        self.IMAGES['message'] = pygame.image.load(file_dir + SPRITES_DIR + '/message.png').convert_alpha()
         # base (ground) sprite
-        self.IMAGES['base'] = pygame.image.load(file_dir + '/FlappyBird/assets/sprites/base.png').convert_alpha()
+        self.IMAGES['base'] = pygame.image.load(file_dir + SPRITES_DIR + '/base.png').convert_alpha()
 
         # sounds
         if 'win' in sys.platform:
@@ -87,11 +90,11 @@ class Game:
         else:
             self.sound_ext = '.ogg'
 
-        self.SOUNDS['die']    = pygame.mixer.Sound(file_dir + '/FlappyBird/assets/audio/die' + self.sound_ext)
-        self.SOUNDS['hit']    = pygame.mixer.Sound(file_dir + '/FlappyBird/assets/audio/hit' + self.sound_ext)
-        self.SOUNDS['point']  = pygame.mixer.Sound(file_dir + '/FlappyBird/assets/audio/point' + self.sound_ext)
-        self.SOUNDS['swoosh'] = pygame.mixer.Sound(file_dir + '/FlappyBird/assets/audio/swoosh' + self.sound_ext)
-        self.SOUNDS['wing']   = pygame.mixer.Sound(file_dir + '/FlappyBird/assets/audio/wing' + self.sound_ext)
+        self.SOUNDS['die']    = pygame.mixer.Sound(file_dir + AUDIOS_DIR + '/die' + self.sound_ext)
+        self.SOUNDS['hit']    = pygame.mixer.Sound(file_dir + AUDIOS_DIR + '/hit' + self.sound_ext)
+        self.SOUNDS['point']  = pygame.mixer.Sound(file_dir + AUDIOS_DIR + '/point' + self.sound_ext)
+        self.SOUNDS['swoosh'] = pygame.mixer.Sound(file_dir + AUDIOS_DIR + '/swoosh' + self.sound_ext)
+        self.SOUNDS['wing']   = pygame.mixer.Sound(file_dir + AUDIOS_DIR + '/wing' + self.sound_ext)
 
 
 
@@ -515,189 +518,3 @@ class Game:
     def _die_sound(self) -> None:
         '''Will play the sound when the bird dies'''
         self.SOUNDS['die'].play()
-
-
-
-class PlayGame(Game):
-    def __init__(self, file_dir = ''):
-        Game.__init__(self, file_dir = file_dir)
-
-class TrainGame(Game):
-    def __init__(self, file_dir = ''):
-        Game.__init__(self, file_dir)
-
-    def _get_fps(self):
-        return 3840
-
-    def _get_inputs(self):
-        return [pygame.K_AC_BACK] #Using Andriod Backspace Key because not on PC keyboard
-
-    def _intro_looper(self):
-        '''First game loop in intro screen'''
-        return {
-        'playery': self.player_y + self.player_shm_vals['val'],
-        'basex': self.base_x,
-        'playerIndexGen': self.player_index_gen,
-                }
-    def _wing_sound(self):
-        pass
-    
-    def _point_sound(self):
-        pass
-    
-    def _hit_sound(self):
-        pass
-    
-    def _die_sound(self):
-        pass
-
-class EvaluateGame(Game):
-    def __init__(self, file_dir = '', fps = 3840):
-        Game.__init__(self, file_dir)
-        self.fps = fps
-        self.font = pygame.font.SysFont('Courier New', 30) #Name of font then size
-        self.IMAGES['wait'] = pygame.image.load(file_dir + '/FlappyBird/assets/sprites/added/Wait.png').convert_alpha()
-        self.IMAGES['flap'] = pygame.image.load(file_dir + '/FlappyBird/assets/sprites/added/Flap.png').convert_alpha()
-        self.output1 = None
-        self.output2 = None
-        self.flapCount = 0 #Used to see how many frames have passed since the flap is shown
-        self.imageShown = None
-
-    def _get_fps(self) -> int:
-        return self.fps
-
-    def _get_inputs(self):
-        return [pygame.K_AC_BACK] #Using Andriod Backspace Key because not on PC keyboard
-        
-    def _intro_looper(self):
-        '''First game loop in intro screen'''
-        return {
-        'playery': self.player_y + self.player_shm_vals['val'],
-        'basex': self.base_x,
-        'playerIndexGen': self.player_index_gen,
-            }
-
-    def assign_action(self):
-        self.imageShown = self.IMAGES['flap']
-        self.flapCount = 1
-    
-    def assign_wait(self):
-        if self.flapCount > 2:
-            self.flapCount = 0
-            self.imageShown = self.IMAGES['wait']
-        else:
-            self.flapCount += 1
-
-    def _show_info(self):
-        if self.imageShown != None:
-            self.SCREEN.blit(self.imageShown, (150,425))
-            tOutput1 = self.font.render(str(int(self.output1)), True, (0,0,0))
-            tOutput2 = self.font.render(str(int(self.output2)), True, (0,0,0))
-            self.SCREEN.blit(tOutput1, (10,435))
-            self.SCREEN.blit(tOutput2, (10,475))
-
-    def show_info_cord(self):
-        pass
-
-    def _wing_sound(self):
-        pass
-    
-    def _point_sound(self):
-        pass
-    
-    def _hit_sound(self):
-        pass
-    
-    def _die_sound(self):
-        pass
-
-class GameManager:   
-    def __init__(self, game : Game) -> None:
-        self.movement = None
-        self.score_check = 0
-        self.game = game
-        self.key_event_up = pygame.event.Event(pygame.KEYDOWN, {'key': self.game._get_inputs()[0]})
-        self.upper_dist_offset = 10  #How far away from the pipe the bird has to be in order for certain reward 
-        self.lower_dist_offset = 20  
-    
-    def action_sequence(self, action : list[int]) -> tuple[float, bool, int]:
-        '''Will perform the action and return information resulting from the action in a tuple.
-        It will be ordered as the reward, if the game is done, and the score of the game'''
-        self._action(action, self.game.score)
-        #TODO add an accesor to the score
-        return self._get_reward(self.game.level_loop(), self.game.score)
-    
-    def reset(self) -> None:
-        '''Will reset the game when it is over'''
-        self.game.init_level()
-        pygame.event.post(self.key_event_up)
-
-    def get_state(self) -> list[int]:
-        '''Will return the state of the game in the shape of a tuple .
-        It would be ordered as the distance to the next set of pipes, the distance to the top of the pipe, the distance to the bottom of the pipe, and the birds y velocity'''
-        try:
-            distance_top = self.game.player_y - (self.game.IMAGES['pipe'][0].get_height() + self.game.upper_pipes[-2]['y'])
-            distance_bottom = self.game.lower_pipes[-2]['y'] - self.game.player_y
-            return (
-                self.game.lower_pipes[-2]['x'],
-                distance_top,
-                distance_bottom,
-                self.game.player_vel_y,
-            )
-        except AttributeError: #when getting the length during setup of model of the get_state when some variables have not been made yet
-            return (0,0,0,0)
-    
-    def play(self) -> None:
-        '''Will play the main loop of the game'''
-        while True:
-            self.game.init_level()
-            crashInfo = None
-            while crashInfo == None:
-                crashInfo = self.game.level_loop()
-            self.game.show_game_over_screen(crashInfo)
-    
-    #TODO update so that no random attributes are assigned and that the predict does not need to be a tensor 
-    def set_outputs(self, predict : 'torch.Tensor'):
-        '''Will update values that should be displayed during evaluation'''
-        self.game.output1 = predict[0].item()
-        self.game.output2 = predict[1].item()
-
-    #TODO potentially update action to be a named tuple
-    def _action(self, action : list[int], score : int):
-        '''Will perform the action that is passed in'''
-        self.movement = action
-        self.score_check = score
-        if self.movement == [1,0]:
-            pygame.event.post(self.key_event_up)
-            #TODO update so it just displays the scores and do need need seperate functions assign_action and assign_wait
-            self.game.assign_action()
-        else:
-            self.game.assign_wait()
-
-    def _determine_pos_reward(self):
-        '''Will determine a reward when the bird is inside of the pipes and will increase the reward as it gets closer between the pipes'''
-        return 8.88889*(self.upper_dist_offset) + 355.556
-
-    def _get_reward(self, crash_info : dict[str], score : int) -> tuple[float, bool, int]:
-        '''Will get the reward after an action at the current state'''
-        reward = 0
-        done = False
-        distance_top = self.game.player_y - (self.game.IMAGES['pipe'][0].get_height()+self.game.upper_pipes[-2]['y'])
-        distance_bottom = self.game.lower_pipes[-2]['y'] - self.game.player_y
-        if distance_top < self.upper_dist_offset  or distance_bottom < self.lower_dist_offset :
-            reward += -200
-
-        else:
-            reward += self._determine_pos_reward()
-
-        if crash_info != None: # Did crash
-            done = True
-            reward += -200
-            return reward, done, score
-        
-        elif score > self.score_check:
-            reward += 200
-            return reward, done, score
-        
-        else:
-            return reward, done, score
