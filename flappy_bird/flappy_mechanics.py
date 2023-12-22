@@ -2,14 +2,19 @@ from itertools import cycle
 import random
 import sys
 import pygame
+from .flappy_delegate import BaseView
 
 SPRITES_DIR = '/flappy_bird/assets/sprites'
 AUDIOS_DIR = '/flappy_bird/assets/audio'
 
+SCREEN_WIDTH = 288
+SCREEN_HEIGHT = 512
+
 class FlappyGame:
-    def __init__(self, file_dir : str = '') -> None:
-        self.SCREEN_WIDTH  = 288
-        self.SCREEN_HEIGHT = 512
+    def __init__(self, view : BaseView = BaseView(), file_dir : str = '') -> None:
+        self.VIEW = view
+        self.SCREEN_WIDTH  = SCREEN_WIDTH
+        self.SCREEN_HEIGHT = SCREEN_HEIGHT
         self.PIPE_GAP_SIZE  = 100 # gap between upper and lower part of pipe
         self.BASE_Y        = self.SCREEN_HEIGHT * 0.79
 
@@ -52,16 +57,8 @@ class FlappyGame:
             file_dir + SPRITES_DIR + '/pipe-green.png',
             file_dir + SPRITES_DIR + '/pipe-red.png',
         )
-
-
         
         self.xrange = range
-
-
-        pygame.init()
-        self.FPS_CLOCK = pygame.time.Clock()
-        self.SCREEN = pygame.display.set_mode((self.SCREEN_WIDTH, self.SCREEN_HEIGHT))
-        pygame.display.set_caption('Flappy Bird')
 
         # numbers sprites for score display
         self.IMAGES['numbers'] = (
@@ -194,15 +191,16 @@ class FlappyGame:
 
     def level_loop(self) -> dict[str]:
         '''completes one game loop'''
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
-                pygame.quit()
-                sys.exit()
-            if event.type == pygame.KEYDOWN and (event.key in self._get_inputs()):
-                if self.player_y > -2 * self.IMAGES['player'][0].get_height():
+
+        list_images = []
+
+        def input_func():
+            if self.player_y > -2 * self.IMAGES['player'][0].get_height():
                     self.player_vel_y = self.player_flap_acc
                     self.player_flapped = True
-                    self._wing_sound()
+                    self.VIEW.play_audio(self.SOUNDS['wing'])
+        
+        self.VIEW.handle_input(self._get_inputs(), input_func)
         
         # check for crash here
         self.crash_test = self._check_crash({'x': self.player_x, 'y': self.player_y, 'index': self.player_index},
@@ -225,7 +223,7 @@ class FlappyGame:
             self.pipeMidPos = pipe['x'] + self.IMAGES['pipe'][0].get_width() / 2
             if self.pipeMidPos <= self.player_mid_pos < self.pipeMidPos + 4:
                 self.score += 1
-                self._point_sound()
+                self.VIEW.play_audio(self.SOUNDS['point'])
 
         # playerIndex basex change
         if (self.loop_iter + 1) % 3 == 0:
@@ -266,15 +264,15 @@ class FlappyGame:
             self.lower_pipes.pop(0)
 
         # draw sprites
-        self.SCREEN.blit(self.IMAGES['background'], (0,0))
+        list_images.append((self.IMAGES['background'], (0,0)))
 
         for u_pipe, l_pipe in zip(self.upper_pipes, self.lower_pipes):
-            self.SCREEN.blit(self.IMAGES['pipe'][0], (u_pipe['x'], u_pipe['y']))
-            self.SCREEN.blit(self.IMAGES['pipe'][1], (l_pipe['x'], l_pipe['y']))
+            list_images.append((self.IMAGES['pipe'][0], (u_pipe['x'], u_pipe['y'])))
+            list_images.append((self.IMAGES['pipe'][1], (l_pipe['x'], l_pipe['y'])))
 
-        self.SCREEN.blit(self.IMAGES['base'], (self.base_x, self.BASE_Y))
+        list_images.append((self.IMAGES['base'], (self.base_x, self.BASE_Y)))
         # print score so player overlaps the score
-        self._show_score(self.score)
+        list_images.extend(self._show_score(self.score))
 
         # Player rotation has a threshold
         self.visible_rot = self.player_rot_thr
@@ -282,10 +280,9 @@ class FlappyGame:
             self.visible_rot = self.player_rot
         
         self.player_surface = pygame.transform.rotate(self.IMAGES['player'][self.player_index], self.visible_rot)
-        self.SCREEN.blit(self.player_surface, (self.player_x, self.player_y))
-        self._show_info()
-        pygame.display.update()
-        self.FPS_CLOCK.tick(self._get_fps())
+        list_images.append(((self.player_surface, (self.player_x, self.player_y))))
+        list_images.extend(self._show_info())
+        self.VIEW.draw_display(list_images)
 
     def show_game_over_screen(self, crash_info : dict[str]) -> None:
         '''crashes the player down and shows gameover image'''
@@ -303,19 +300,20 @@ class FlappyGame:
         upperPipes, lowerPipes = crash_info['upperPipes'], crash_info['lowerPipes']
 
         # play hit and die sounds
-        self._hit_sound()
+        self.VIEW.play_audio(self.SOUNDS['hit'])
         if not crash_info['groundCrash']:
             pass
-            self._die_sound()
+            self.VIEW.play_audio(self.SOUNDS['die'])
 
         while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE): 
-                    pygame.quit()
-                    sys.exit()
-                if event.type == pygame.KEYDOWN and (event.key in self._get_inputs()):
-                    if playery + player_height >= self.BASE_Y - 1:
-                        return
+
+            def input_func() -> bool:
+                if playery + player_height >= self.BASE_Y - 1:
+                    return True
+                return False
+            
+            if self.VIEW.handle_input(self._get_inputs(), input_func):
+                return
 
             # player y shift
             if playery + player_height < self.BASE_Y - 1:
@@ -330,20 +328,20 @@ class FlappyGame:
                 if player_rot > -90:
                     player_rot -= player_vel_rot
 
+            list_images = []
             # draw sprites
-            self.SCREEN.blit(self.IMAGES['background'], (0,0))
+            list_images.append((self.IMAGES['background'], (0,0)))
 
             for uPipe, lPipe in zip(upperPipes, lowerPipes):
-                self.SCREEN.blit(self.IMAGES['pipe'][0], (uPipe['x'], uPipe['y']))
-                self.SCREEN.blit(self.IMAGES['pipe'][1], (lPipe['x'], lPipe['y']))
+                list_images.append((self.IMAGES['pipe'][0], (uPipe['x'], uPipe['y'])))
+                list_images.append((self.IMAGES['pipe'][1], (lPipe['x'], lPipe['y'])))
 
-            self.SCREEN.blit(self.IMAGES['base'], (self.base_x, self.BASE_Y))
-            self._show_score(score)
+            list_images.append((self.IMAGES['base'], (self.base_x, self.BASE_Y)))
+            list_images.extend(self._show_score(score))
             player_surface = pygame.transform.rotate(self.IMAGES['player'][1], player_rot)
-            self.SCREEN.blit(player_surface, (playerx,playery))
-            self.SCREEN.blit(self.IMAGES['gameover'], (50, 180))
-            self.FPS_CLOCK.tick(self._get_fps())
-            pygame.display.update()
+            list_images.append((player_surface, (playerx,playery)))
+            list_images.append((self.IMAGES['gameover'], (50, 180)))
+            self.VIEW.draw_display(list_images)
 
     #TODO update so function does not need to be defined
     def assign_action(self) -> None:
@@ -366,14 +364,14 @@ class FlappyGame:
             self._player_shm(self.player_shm_vals)
 
             # draw sprites
-            self.SCREEN.blit(self.IMAGES['background'], (0,0))
-            self.SCREEN.blit(self.IMAGES['player'][self.player_index],
-                        (self.player_x, self.player_y + self.player_shm_vals['val']))
-            self.SCREEN.blit(self.IMAGES['message'], (self.message_x, self.message_y))
-            self.SCREEN.blit(self.IMAGES['base'], (self.base_x, self.BASE_Y))
+            list_images = []
+            list_images.append((self.IMAGES['background'], (0,0)))
+            list_images.append((self.IMAGES['player'][self.player_index],
+                        (self.player_x, self.player_y + self.player_shm_vals['val'])))
+            list_images.append((self.IMAGES['message'], (self.message_x, self.message_y)))
+            list_images.append((self.IMAGES['base'], (self.base_x, self.BASE_Y)))
 
-            pygame.display.update()
-            self.FPS_CLOCK.tick(self._get_fps())
+            self.VIEW.draw_display(list_images)
 
             if values != None:
                 return values
@@ -413,7 +411,7 @@ class FlappyGame:
 
         return [False, False]
 
-    def _show_score(self,score) -> None:
+    def _show_score(self,score) -> list[tuple[pygame.Surface, tuple[int, int]]]:
         '''displays score in center of screen'''
         score_digits = [int(x) for x in list(str(score))]
         total_width = 0 # total width of all numbers to be printed
@@ -423,9 +421,12 @@ class FlappyGame:
 
         x_offset = (self.SCREEN_WIDTH - total_width) / 2
 
+        list_images = []
         for digit in score_digits:
-            self.SCREEN.blit(self.IMAGES['numbers'][digit], (x_offset, self.SCREEN_HEIGHT * 0.1))
+            list_images.append((self.IMAGES['numbers'][digit], (x_offset, self.SCREEN_HEIGHT * 0.1)))
             x_offset += self.IMAGES['numbers'][digit].get_width()
+
+        return list_images
 
     def _get_random_pipe(self) -> list[dict[str, int]]:
         '''returns a randomly generated pipe'''
@@ -466,6 +467,7 @@ class FlappyGame:
                     return True
         return False
         
+
     def _get_hitmask(self, image: pygame.Surface) -> list[list[bool]]:
         '''returns a hitmask using an image's alpha.'''
         mask : list[list[bool]]
@@ -476,9 +478,9 @@ class FlappyGame:
                 mask[x].append(bool(image.get_at((x,y))[3]))
         return mask
     
-    def _show_info(self) -> None:
+    def _show_info(self) -> list[tuple[pygame.Surface], tuple[int, int]]:
         '''Would show infor at the bottom of the screen'''
-        pass
+        return []
 
     def _get_fps(self) -> int:
         '''Returns the FPS for current game'''
@@ -490,31 +492,13 @@ class FlappyGame:
     
     def _intro_looper(self) -> dict[str, int]:
         '''First game loop in intro screen'''
-        # May need to be differnt for training and evaulating 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
-                pygame.quit()
-                sys.exit()
-            if event.type == pygame.KEYDOWN and (event.key in self._get_inputs()):
-                self._wing_sound()
-                return {
+        
+        def input_func() -> dict[str, int]:
+            self.VIEW.play_audio(self.SOUNDS['wing'])
+            return {
                     'playery': self.player_y + self.player_shm_vals['val'],
                     'basex': self.base_x,
                     'playerIndexGen': self.player_index_gen,
                     }
-            
-    def _wing_sound(self) -> None:
-        '''Will play the sound for when the bird flaps'''
-        self.SOUNDS['wing'].play()
-    
-    def _point_sound(self) -> None:
-        '''Will play the sound for when a point is achieved'''
-        self.SOUNDS['point'].play()
-    
-    def _hit_sound(self) -> None:
-        '''Will play the sound for when the bird hits something'''
-        self.SOUNDS['hit'].play()
-    
-    def _die_sound(self) -> None:
-        '''Will play the sound when the bird dies'''
-        self.SOUNDS['die'].play()
+        
+        return self.VIEW.handle_input(self._get_inputs(), input_func)

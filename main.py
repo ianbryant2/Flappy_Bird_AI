@@ -52,7 +52,7 @@ def main() -> None:
       gm.play()
 
    elif type_game.upper() == 'EVALUATE':
-      gm = FlappyGameManager(FlappyEvaluateGame(file_dir = FILE_DIR, fps = fps))
+      gm = FlappyGameManager(FlappyEvaluateGame(file_dir = FILE_DIR))
       agent = fm.Agent(gm)
       agent.model.load_state_dict(torch.load(FILE_DIR + '/test_weights.pt'))
       fm.evaluate(agent, epochs = epoch)
