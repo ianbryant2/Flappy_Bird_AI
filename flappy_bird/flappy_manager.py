@@ -1,14 +1,17 @@
 import pygame
 from .flappy_mechanics import FlappyGame
+from collections.abc import Callable
 
 class FlappyGameManager:   
-    def __init__(self, game : FlappyGame) -> None:
+    def __init__(self, game : FlappyGame, game_type : str = None) -> None:
         self.movement = None
         self.score_check = 0
         self.game = game
         self.key_event_up = pygame.event.Event(pygame.KEYDOWN, {'key': self.game._get_inputs()[0]})
         self.upper_dist_offset = 10  #How far away from the pipe the bird has to be in order for certain reward 
         self.lower_dist_offset = 20  
+        self.game_type = game_type
+        self.input_post = self._create_post_type()
     
     def action_sequence(self, action : list[int]) -> tuple[float, bool, int]:
         '''Will perform the action and return information resulting from the action in a tuple.
@@ -20,7 +23,7 @@ class FlappyGameManager:
     def reset(self) -> None:
         '''Will reset the game when it is over'''
         self.game.init_level()
-        pygame.event.post(self.key_event_up)
+        self.input_post(self.key_event_up)
 
     def get_state(self) -> list[int]:
         '''Will return the state of the game in the shape of a tuple .
@@ -58,7 +61,7 @@ class FlappyGameManager:
         self.movement = action
         self.score_check = score
         if self.movement == [1,0]:
-            pygame.event.post(self.key_event_up)
+            self.input_post(self.key_event_up)
             #TODO update so it just displays the scores and do need need seperate functions assign_action and assign_wait
             self.game.assign_action()
         else:
@@ -91,3 +94,13 @@ class FlappyGameManager:
         
         else:
             return reward, done, score
+        
+    def _create_post_type(self) -> Callable:
+        if self.game_type == 'train' or self.game_type == 'evaluate':
+            def flap_input(game_input : int) -> bool:
+                if game_input == self.key_event_up:
+                    self.game.VIEW.flap_input = True
+                return True
+            return flap_input
+        else:
+            return pygame.event.post

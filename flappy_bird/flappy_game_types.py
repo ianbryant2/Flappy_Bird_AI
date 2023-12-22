@@ -9,7 +9,7 @@ class FlappyPlayGame(FlappyGame):
 
 class FlappyTrainGame(FlappyGame):
     def __init__(self, file_dir=''):
-        view = TrainView()
+        view = TrainView(fps=30000, width=SCREEN_WIDTH, height=SCREEN_HEIGHT) #pass in kwargs if we wawnt to change to display
         FlappyGame.__init__(self, view, file_dir)
 
     def _get_inputs(self):
@@ -25,7 +25,7 @@ class FlappyTrainGame(FlappyGame):
 
 class FlappyEvaluateGame(FlappyGame):
     def __init__(self, file_dir = ''):
-        view = EvaluateView(fps=30000, width=SCREEN_WIDTH, height=SCREEN_HEIGHT)
+        view = EvaluateView(fps=30, width=SCREEN_WIDTH, height=SCREEN_HEIGHT)
         FlappyGame.__init__(self, view, file_dir)
         self.font = pygame.font.SysFont('Courier New', 30) #Name of font then size
         self.IMAGES['wait'] = pygame.image.load(file_dir + SPRITES_DIR + '/added/Wait.png').convert_alpha()

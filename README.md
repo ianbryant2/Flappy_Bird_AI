@@ -10,8 +10,6 @@ Future Features/Improvements
 
 (Going from most important to least)
 
-1. Be able to stop while training without keyboard interupts 
-
 1. Not need to have a tiny pygame display when training
 
 1. Able to load weights from previous training 

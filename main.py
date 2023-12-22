@@ -43,7 +43,7 @@ def main() -> None:
    
 
    if type_game.upper() == 'TRAIN':
-      gm = FlappyGameManager(FlappyTrainGame(file_dir = FILE_DIR))
+      gm = FlappyGameManager(FlappyTrainGame(file_dir = FILE_DIR), game_type='train')
       agent = fm.Agent(gm)
       fm.train(agent, epochs = epoch, plotting_scores=True)
 
@@ -52,7 +52,7 @@ def main() -> None:
       gm.play()
 
    elif type_game.upper() == 'EVALUATE':
-      gm = FlappyGameManager(FlappyEvaluateGame(file_dir = FILE_DIR))
+      gm = FlappyGameManager(FlappyEvaluateGame(file_dir = FILE_DIR), game_type='evaluate')
       agent = fm.Agent(gm)
       agent.model.load_state_dict(torch.load(FILE_DIR + '/test_weights.pt'))
       fm.evaluate(agent, epochs = epoch)
