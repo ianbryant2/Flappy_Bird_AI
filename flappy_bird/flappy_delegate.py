@@ -2,8 +2,6 @@ import pygame
 import sys
 from collections.abc import Callable
 
-from pygame.mixer import Sound
-
 class BaseView():
     '''Will be the baseclass that can be inherited from in order to implement the specific view methods'''
     def __init__(self, **kwargs) -> None:

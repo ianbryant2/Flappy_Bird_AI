@@ -1,5 +1,5 @@
 import pygame
-from .flappy_mechanics import FlappyGame
+from flappy_bird.flappy_mechanics import FlappyGame
 
 class FlappyGameManager:   
     def __init__(self, game : FlappyGame) -> None:

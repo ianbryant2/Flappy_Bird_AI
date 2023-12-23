@@ -1,6 +1,6 @@
 import pygame
-from .flappy_mechanics import FlappyGame, SPRITES_DIR, AUDIOS_DIR, SCREEN_HEIGHT, SCREEN_WIDTH
-from .flappy_delegate import PlayView, TrainView, EvaluateView
+from flappy_bird.flappy_mechanics import FlappyGame, SPRITES_DIR, AUDIOS_DIR, SCREEN_HEIGHT, SCREEN_WIDTH
+from flappy_bird.flappy_delegate import PlayView, TrainView, EvaluateView
 
 class FlappyPlayGame(FlappyGame):
     def __init__(self, file_dir = ''):

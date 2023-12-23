@@ -2,7 +2,7 @@ from itertools import cycle
 import random
 import sys
 import pygame
-from .flappy_delegate import BaseView
+from flappy_bird.flappy_delegate import BaseView
 
 SPRITES_DIR = '/flappy_bird/assets/sprites'
 AUDIOS_DIR = '/flappy_bird/assets/audio'
@@ -11,7 +11,7 @@ SCREEN_WIDTH = 288
 SCREEN_HEIGHT = 512
 
 class FlappyGame:
-    def __init__(self, view : BaseView = BaseView(), file_dir : str = '') -> None:
+    def __init__(self, view : BaseView, file_dir : str = '') -> None:
         self.VIEW = view
         self.SCREEN_WIDTH  = SCREEN_WIDTH
         self.SCREEN_HEIGHT = SCREEN_HEIGHT

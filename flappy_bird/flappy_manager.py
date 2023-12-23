@@ -1,5 +1,5 @@
 import pygame
-from .flappy_mechanics import FlappyGame
+from flappy_bird.flappy_mechanics import FlappyGame
 from collections.abc import Callable
 
 class FlappyGameManager:   
