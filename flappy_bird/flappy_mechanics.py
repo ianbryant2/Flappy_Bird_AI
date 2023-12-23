@@ -2,7 +2,7 @@ from itertools import cycle
 import random
 import sys
 import pygame
-from flappy_bird.flappy_delegate import BaseView
+from .flappy_delegate import BaseView
 
 SPRITES_DIR = '/flappy_bird/assets/sprites'
 AUDIOS_DIR = '/flappy_bird/assets/audio'
