@@ -1,5 +1,4 @@
-from flappy_bird.flappy_game_types import FlappyPlayGame, FlappyEvaluateGame, FlappyTrainGame
-from flappy_bird.flappy_manager import FlappyGameManager
+from flappy_bird import FlappyPlayGame, FlappyEvaluateGame, FlappyTrainGame, FlappyGameManager
 import flappy_model as fm
 import torch
 import os 
