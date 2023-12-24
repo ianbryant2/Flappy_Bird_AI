@@ -4,6 +4,7 @@ from collections.abc import Callable
 
 #TODO instead of different behaviors of the view being subclasses, have the base class take in flags and assign functions accordingly
 #should be a higher priority
+#Raise sometime of error when things passed in dont work
 class BaseView():
     '''Will be the baseclass that can be inherited from in order to implement the specific view methods'''
     def __init__(self, **kwargs) -> None:
@@ -27,7 +28,7 @@ class BaseView():
         The return type is the return type of the function or None if it is not called'''
         pass
 
-    def post_input(self) -> bool:
+    def post_input(self, flap_event : list[int]) -> bool:
         '''When implemented, the event passed in will be posted to the queue'''
         pass
     
@@ -71,8 +72,9 @@ class BaseView():
         pygame.display.update()
         self._FPS_CLOCK.tick(self.FPS)
 
-    def _ai_input_post(self) -> bool:
-        self._flap_input = True
+    def _ai_input_post(self, flap_event : list[int]) -> bool:
+        if flap_event[0]: 
+            self._flap_input = True
         return True
 
 
@@ -106,8 +108,8 @@ class EvaluateView(BaseView):
     def handle_input(self, func: Callable) -> None:
         return self._ai_input(func)
     
-    def post_input(self) -> bool:
-        self._ai_input_post()
+    def post_input(self, event : list[int]) -> bool:
+        self._ai_input_post(event)
 
         
 
@@ -119,5 +121,5 @@ class TrainView(BaseView):
     def handle_input(self, func: Callable) -> 'None | Return_type_of_func':
         return self._ai_input(func)
     
-    def post_input(self) -> bool:
-        self._ai_input_post()
+    def post_input(self, event : list[int]) -> bool:
+        self._ai_input_post(event)

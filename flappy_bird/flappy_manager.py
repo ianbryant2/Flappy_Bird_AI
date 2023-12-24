@@ -13,7 +13,10 @@ class FlappyGameManager:
         #TODO Add so that it checks a view attribute named ai_input that is bool to see if they want ai_input
         #TODO Add an attributes that represents if they want information about AI displayed only if the FlappyGame contains another attribute (this will make it so that play game cannot have)
         #TODO If they want info displayed then add that information to the view not the game, the game should not handle displaying extra information
+        #TODO most of above can be in game_delagate but what outputs from the model do what [1...] is up to person making game
+        #TODO action should be a list of ints where the 1 in a input means do
         self.input_post = self._game.VIEW.post_input
+        self.FLAP_EVENT = [1, 0]
     
     def action_sequence(self, action : list[int]) -> tuple[float, bool, int]:
         '''Will perform the action and return information resulting from the action in a tuple.
@@ -25,7 +28,7 @@ class FlappyGameManager:
     def reset(self) -> None:
         '''Will reset the game when it is over'''
         self._game.init_level()
-        self.input_post()
+        self.input_post(self.FLAP_EVENT)
 
     def get_state(self) -> list[int]:
         '''Will return the state of the game in the shape of a tuple .
@@ -62,8 +65,8 @@ class FlappyGameManager:
         '''Will perform the action that is passed in'''
         self._movement = action
         self._score_check = score
+        self.input_post(self._movement)
         if self._movement == [1,0]:
-            self.input_post()
             #TODO update so it just displays the scores and do need need seperate functions assign_action and assign_wait
             self._game.assign_action()
         else:
