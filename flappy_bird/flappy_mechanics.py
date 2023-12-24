@@ -3,15 +3,18 @@ import random
 import sys
 import pygame
 from .flappy_delegate import BaseView
+import os
 
-SPRITES_DIR = '/flappy_bird/assets/sprites'
-AUDIOS_DIR = '/flappy_bird/assets/audio'
+
+ASSETS_DIR  = os.path.join(os.path.dirname(__file__), 'assets')
+SPRITES_DIR = os.path.join(ASSETS_DIR, 'sprites')
+AUDIOS_DIR  = os.path.join(ASSETS_DIR, 'audio')
 
 SCREEN_WIDTH = 288
 SCREEN_HEIGHT = 512
 
 class FlappyGame:
-    def __init__(self, view : BaseView, file_dir : str = '') -> None:
+    def __init__(self, view : BaseView) -> None:
         self.VIEW = view
         self.SCREEN_WIDTH  = SCREEN_WIDTH
         self.SCREEN_HEIGHT = SCREEN_HEIGHT
@@ -28,58 +31,58 @@ class FlappyGame:
         self.PLAYERS_LIST = (
             # red bird
             (
-                file_dir + SPRITES_DIR + '/redbird-upflap.png',
-                file_dir + SPRITES_DIR + '/redbird-midflap.png',
-                file_dir + SPRITES_DIR + '/redbird-downflap.png',
+                SPRITES_DIR + '/redbird-upflap.png',
+                SPRITES_DIR + '/redbird-midflap.png',
+                SPRITES_DIR + '/redbird-downflap.png',
             ),
             # blue bird
             (
-                file_dir + SPRITES_DIR + '/bluebird-upflap.png',
-                file_dir + SPRITES_DIR + '/bluebird-midflap.png',
-                file_dir + SPRITES_DIR + '/bluebird-downflap.png',
+                SPRITES_DIR + '/bluebird-upflap.png',
+                SPRITES_DIR + '/bluebird-midflap.png',
+                SPRITES_DIR + '/bluebird-downflap.png',
             ),
             # yellow bird
             (
-                file_dir + SPRITES_DIR + '/yellowbird-upflap.png',
-                file_dir + SPRITES_DIR + '/yellowbird-midflap.png',
-                file_dir + SPRITES_DIR + '/yellowbird-downflap.png',
+                SPRITES_DIR + '/yellowbird-upflap.png',
+                SPRITES_DIR + '/yellowbird-midflap.png',
+                SPRITES_DIR + '/yellowbird-downflap.png',
             ),
         )
 
         # list of backgrounds
         self.BACKGROUNDS_LIST = (
-            file_dir + SPRITES_DIR + '/background-day.png',
-            file_dir + SPRITES_DIR + '/background-night.png',
+            SPRITES_DIR + '/background-day.png',
+            SPRITES_DIR + '/background-night.png',
         )
 
         # list of pipes
         self.PIPES_LIST = (
-            file_dir + SPRITES_DIR + '/pipe-green.png',
-            file_dir + SPRITES_DIR + '/pipe-red.png',
+            SPRITES_DIR + '/pipe-green.png',
+            SPRITES_DIR + '/pipe-red.png',
         )
         
         self.xrange = range
 
         # numbers sprites for score display
         self.IMAGES['numbers'] = (
-            pygame.image.load(file_dir + SPRITES_DIR + '/0.png').convert_alpha(),
-            pygame.image.load(file_dir + SPRITES_DIR + '/1.png').convert_alpha(),
-            pygame.image.load(file_dir + SPRITES_DIR + '/2.png').convert_alpha(),
-            pygame.image.load(file_dir + SPRITES_DIR + '/3.png').convert_alpha(),
-            pygame.image.load(file_dir + SPRITES_DIR + '/4.png').convert_alpha(),
-            pygame.image.load(file_dir + SPRITES_DIR + '/5.png').convert_alpha(),
-            pygame.image.load(file_dir + SPRITES_DIR + '/6.png').convert_alpha(),
-            pygame.image.load(file_dir + SPRITES_DIR + '/7.png').convert_alpha(),
-            pygame.image.load(file_dir + SPRITES_DIR + '/8.png').convert_alpha(),
-            pygame.image.load(file_dir + SPRITES_DIR + '/9.png').convert_alpha()
+            pygame.image.load(SPRITES_DIR + '/0.png').convert_alpha(),
+            pygame.image.load(SPRITES_DIR + '/1.png').convert_alpha(),
+            pygame.image.load(SPRITES_DIR + '/2.png').convert_alpha(),
+            pygame.image.load(SPRITES_DIR + '/3.png').convert_alpha(),
+            pygame.image.load(SPRITES_DIR + '/4.png').convert_alpha(),
+            pygame.image.load(SPRITES_DIR + '/5.png').convert_alpha(),
+            pygame.image.load(SPRITES_DIR + '/6.png').convert_alpha(),
+            pygame.image.load(SPRITES_DIR + '/7.png').convert_alpha(),
+            pygame.image.load(SPRITES_DIR + '/8.png').convert_alpha(),
+            pygame.image.load(SPRITES_DIR + '/9.png').convert_alpha()
         )
 
         # game over sprite
-        self.IMAGES['gameover'] = pygame.image.load(file_dir + SPRITES_DIR + '/gameover.png').convert_alpha()
+        self.IMAGES['gameover'] = pygame.image.load(SPRITES_DIR + '/gameover.png').convert_alpha()
         # message sprite for welcome screen
-        self.IMAGES['message'] = pygame.image.load(file_dir + SPRITES_DIR + '/message.png').convert_alpha()
+        self.IMAGES['message'] = pygame.image.load(SPRITES_DIR + '/message.png').convert_alpha()
         # base (ground) sprite
-        self.IMAGES['base'] = pygame.image.load(file_dir + SPRITES_DIR + '/base.png').convert_alpha()
+        self.IMAGES['base'] = pygame.image.load(SPRITES_DIR + '/base.png').convert_alpha()
 
         # sounds
         if 'win' in sys.platform:
@@ -87,11 +90,11 @@ class FlappyGame:
         else:
             self.sound_ext = '.ogg'
 
-        self.SOUNDS['die']    = pygame.mixer.Sound(file_dir + AUDIOS_DIR + '/die' + self.sound_ext)
-        self.SOUNDS['hit']    = pygame.mixer.Sound(file_dir + AUDIOS_DIR + '/hit' + self.sound_ext)
-        self.SOUNDS['point']  = pygame.mixer.Sound(file_dir + AUDIOS_DIR + '/point' + self.sound_ext)
-        self.SOUNDS['swoosh'] = pygame.mixer.Sound(file_dir + AUDIOS_DIR + '/swoosh' + self.sound_ext)
-        self.SOUNDS['wing']   = pygame.mixer.Sound(file_dir + AUDIOS_DIR + '/wing' + self.sound_ext)
+        self.SOUNDS['die']    = pygame.mixer.Sound(AUDIOS_DIR + '/die' + self.sound_ext)
+        self.SOUNDS['hit']    = pygame.mixer.Sound(AUDIOS_DIR + '/hit' + self.sound_ext)
+        self.SOUNDS['point']  = pygame.mixer.Sound(AUDIOS_DIR + '/point' + self.sound_ext)
+        self.SOUNDS['swoosh'] = pygame.mixer.Sound(AUDIOS_DIR + '/swoosh' + self.sound_ext)
+        self.SOUNDS['wing']   = pygame.mixer.Sound(AUDIOS_DIR + '/wing' + self.sound_ext)
 
 
 

@@ -4,7 +4,6 @@ import torch
 import os 
 import sys
 
-FILE_DIR = os.path.dirname(os.path.realpath(__file__))
 SUPPORTED_TYPES = ['PLAY', 'TRAIN', 'TEST', 'EVALUATE']
 
 def main() -> None:
@@ -42,26 +41,26 @@ def main() -> None:
    
 
    if type_game.upper() == 'TRAIN':
-      gm = FlappyGameManager(FlappyTrainGame(file_dir = FILE_DIR), game_type='train')
+      gm = FlappyGameManager(FlappyTrainGame(), game_type='train')
       agent = fm.Agent(gm)
       fm.train(agent, epochs = epoch, plotting_scores=True)
 
    elif type_game.upper() == 'PLAY':
-      gm = FlappyGameManager(FlappyPlayGame(file_dir = FILE_DIR))
+      gm = FlappyGameManager(FlappyPlayGame())
       gm.play()
 
    elif type_game.upper() == 'EVALUATE':
-      gm = FlappyGameManager(FlappyEvaluateGame(file_dir = FILE_DIR), game_type='evaluate')
+      gm = FlappyGameManager(FlappyEvaluateGame(), game_type='evaluate')
       agent = fm.Agent(gm)
-      agent.model.load_state_dict(torch.load(FILE_DIR + '/test_weights.pt'))
+      agent.model.load_state_dict(torch.load(os.path.join(os.path.dirname(__file__), 'test_weights.pt')))
       fm.evaluate(agent, epochs = epoch)
 
    elif type_game.upper() == 'TEST':
 
-      gm = FlappyGameManager(FlappyTrainGame(file_dir = FILE_DIR))
+      gm = FlappyGameManager(FlappyTrainGame())
       agent = fm.Agent(gm)
       fm.train(agent,epochs=epoch) #epochs here are the number of games run in order to trains
-      gm = FlappyGameManager(FlappyEvaluateGame(file_dir = FILE_DIR))
+      gm = FlappyGameManager(FlappyEvaluateGame())
       agent.gm = gm
       print('starting to evaluate')
       for i in range(3): #number of times it is going to be evaluated

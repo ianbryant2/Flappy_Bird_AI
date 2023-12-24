@@ -3,14 +3,14 @@ from .flappy_mechanics import FlappyGame, SPRITES_DIR, AUDIOS_DIR, SCREEN_HEIGHT
 from .flappy_delegate import PlayView, TrainView, EvaluateView
 
 class FlappyPlayGame(FlappyGame):
-    def __init__(self, file_dir = ''):
+    def __init__(self):
         view = PlayView(fps=30, width=SCREEN_WIDTH, height=SCREEN_HEIGHT)
-        FlappyGame.__init__(self, view, file_dir = file_dir)
+        FlappyGame.__init__(self, view)
 
 class FlappyTrainGame(FlappyGame):
-    def __init__(self, file_dir=''):
+    def __init__(self):
         view = TrainView(fps=30000, width=SCREEN_WIDTH, height=SCREEN_HEIGHT) #pass in kwargs if we wawnt to change to display
-        FlappyGame.__init__(self, view, file_dir)
+        FlappyGame.__init__(self, view)
 
     def _get_inputs(self):
         return [pygame.K_AC_BACK] #Using Andriod Backspace Key because not on PC keyboard
@@ -24,12 +24,12 @@ class FlappyTrainGame(FlappyGame):
                 }
 
 class FlappyEvaluateGame(FlappyGame):
-    def __init__(self, file_dir = ''):
+    def __init__(self):
         view = EvaluateView(fps=30, width=SCREEN_WIDTH, height=SCREEN_HEIGHT)
-        FlappyGame.__init__(self, view, file_dir)
+        FlappyGame.__init__(self, view)
         self.font = pygame.font.SysFont('Courier New', 30) #Name of font then size
-        self.IMAGES['wait'] = pygame.image.load(file_dir + SPRITES_DIR + '/added/Wait.png').convert_alpha()
-        self.IMAGES['flap'] = pygame.image.load(file_dir + SPRITES_DIR + '/added/Flap.png').convert_alpha()
+        self.IMAGES['wait'] = pygame.image.load(SPRITES_DIR + '/added/Wait.png').convert_alpha()
+        self.IMAGES['flap'] = pygame.image.load(SPRITES_DIR + '/added/Flap.png').convert_alpha()
         self.output1 = None
         self.output2 = None
         self.flap_count = 0 #Used to see how many frames have passed since the flap is shown
