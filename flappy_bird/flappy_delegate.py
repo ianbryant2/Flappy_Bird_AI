@@ -2,13 +2,17 @@ import pygame
 import sys
 from collections.abc import Callable
 
+#TODO instead of different behaviors of the view being subclasses, have the base class take in flags and assign functions accordingly
+#should be a higher priority
 class BaseView():
     '''Will be the baseclass that can be inherited from in order to implement the specific view methods'''
     def __init__(self, **kwargs) -> None:
         pygame.display.set_mode((1,1))
         pygame.init()
-        self.FPS_CLOCK = pygame.time.Clock()
-        self.flap_input = False
+        self._FPS_CLOCK = pygame.time.Clock()
+        #TODO Need to combine into a flag so that the attribute exists only for a specific type of view
+        self._SUPPORTED_INPUTS = None
+        self._flap_input = None
 
     def draw_display(self, display_elements : list[tuple[pygame.Surface, tuple[int, int]]], func : Callable = None) -> None:
         '''When implemented, will display the elements and run any setup function before drawing'''
@@ -18,22 +22,25 @@ class BaseView():
         '''When implemented, will play the audi that was passed in'''
         pass
 
-    def handle_input(self, flap_inputs : list[int], func : Callable) -> 'None | Return_type_of_func':
-        '''Will handle the inputs of the game and run the function func if there is an input in the defined flap_inputs.
+    def handle_input(self, func : Callable) -> 'None | Return_type_of_func':
+        '''Will handle the inputs of the game and run the function func if there is an input in the queue that is in the defined flap_inputs.
         The return type is the return type of the function or None if it is not called'''
         pass
+
+    def post_input(self) -> bool:
+        '''When implemented, the event passed in will be posted to the queue'''
+        pass
     
-    def _pygame_input(self, flap_inputs : list[int], func : Callable) -> 'None | Return_type_of_func':
+    def _pygame_input(self, func : Callable) -> 'None | Return_type_of_func':
         '''Handles input when flap input utilizes pygame'''
-        events = pygame.event.get()
-        for event in events:
+        for event in pygame.event.get():
             if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                 pygame.quit()
                 sys.exit()
-            if event.type == pygame.KEYDOWN and event.key in flap_inputs:
+            if event.type == pygame.KEYDOWN and event.key in self._SUPPORTED_INPUTS:
                 return func()
             
-    def _ai_input(self, flap_inputs : list[int], func : Callable) -> 'None | Return_type_of_func':
+    def _ai_input(self, func : Callable) -> 'None | Return_type_of_func':
         '''Handles input when flap input does not utilize pygame'''
         events = pygame.event.get()
         for event in events:
@@ -41,8 +48,8 @@ class BaseView():
                 pygame.quit()
                 sys.exit()
 
-        if self.flap_input:
-            self.flap_input = False
+        if self._flap_input:
+            self._flap_input = False
             return func()
     
     def _init_display(self, width : int, height : int, fps : int) -> None:
@@ -62,36 +69,55 @@ class BaseView():
         for element in display_elements:
             self.SCREEN.blit(element[0], element[1])
         pygame.display.update()
-        self.FPS_CLOCK.tick(self.FPS)
+        self._FPS_CLOCK.tick(self.FPS)
+
+    def _ai_input_post(self) -> bool:
+        self._flap_input = True
+        return True
 
 
 class PlayView(BaseView):
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self,**kwargs) -> None:
         super().__init__(**kwargs)
+        self._SUPPORTED_INPUTS = [pygame.K_SPACE, pygame.K_UP]
         self._init_display(kwargs['width'], kwargs['height'], kwargs['fps'])
         
     def draw_display(self, display_elements : list[tuple[pygame.Surface, tuple[int, int]]], func : Callable = None) -> None:
         self._pygame_display(display_elements, func)
 
+    def handle_input(self, func: Callable) -> 'None | Return_type_of_func':
+        return self._pygame_input(func)
+
     def play_audio(self, audio: pygame.mixer.Sound) -> None:
         '''Will play the passed in sound'''
         audio.play()
+
 
 class EvaluateView(BaseView):
 
     def __init__(self, show_display=True, **kwargs) -> None:
         super().__init__(**kwargs)
+        self._flap_input = False
         if show_display:
             self._init_display(kwargs['width'], kwargs['height'], kwargs['fps'])
             self.draw_display = self._pygame_display
 
-    def handle_input(self, flap_inputs: list[int], func: Callable) -> None:
-        return self._ai_input(flap_inputs,  func)
+    def handle_input(self, func: Callable) -> None:
+        return self._ai_input(func)
+    
+    def post_input(self) -> bool:
+        self._ai_input_post()
+
+        
 
 class TrainView(BaseView):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
+        self._flap_input = False
 
-    def handle_input(self, flap_inputs: list[int], func: Callable) -> 'None | Return_type_of_func':
-        return self._ai_input(flap_inputs, func)
+    def handle_input(self, func: Callable) -> 'None | Return_type_of_func':
+        return self._ai_input(func)
+    
+    def post_input(self) -> bool:
+        self._ai_input_post()

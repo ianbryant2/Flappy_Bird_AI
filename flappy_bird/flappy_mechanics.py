@@ -203,7 +203,7 @@ class FlappyGame:
                     self.player_flapped = True
                     self.VIEW.play_audio(self.SOUNDS['wing'])
         
-        self.VIEW.handle_input(self._get_inputs(), input_func)
+        self.VIEW.handle_input(input_func)
         
         # check for crash here
         self.crash_test = self._check_crash({'x': self.player_x, 'y': self.player_y, 'index': self.player_index},
@@ -315,7 +315,7 @@ class FlappyGame:
                     return True
                 return False
             
-            if self.VIEW.handle_input(self._get_inputs(), input_func):
+            if self.VIEW.handle_input(input_func):
                 return
 
             # player y shift
@@ -482,16 +482,8 @@ class FlappyGame:
         return mask
     
     def _show_info(self) -> list[tuple[pygame.Surface], tuple[int, int]]:
-        '''Would show infor at the bottom of the screen'''
+        '''Would show info at the bottom of the screen'''
         return []
-
-    def _get_fps(self) -> int:
-        '''Returns the FPS for current game'''
-        return 30
-    
-    def _get_inputs(self) -> list[int]:
-        '''Returns the correct input for current game'''
-        return [pygame.K_SPACE, pygame.K_UP]
     
     def _intro_looper(self) -> dict[str, int]:
         '''First game loop in intro screen'''
@@ -504,4 +496,4 @@ class FlappyGame:
                     'playerIndexGen': self.player_index_gen,
                     }
         
-        return self.VIEW.handle_input(self._get_inputs(), input_func)
+        return self.VIEW.handle_input(input_func)

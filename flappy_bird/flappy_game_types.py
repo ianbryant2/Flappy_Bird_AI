@@ -12,9 +12,6 @@ class FlappyTrainGame(FlappyGame):
         view = TrainView(fps=30000, width=SCREEN_WIDTH, height=SCREEN_HEIGHT) #pass in kwargs if we wawnt to change to display
         FlappyGame.__init__(self, view)
 
-    def _get_inputs(self):
-        return [pygame.K_AC_BACK] #Using Andriod Backspace Key because not on PC keyboard
-
     def _intro_looper(self):
         '''First game loop in intro screen'''
         return {
@@ -34,9 +31,6 @@ class FlappyEvaluateGame(FlappyGame):
         self.output2 = None
         self.flap_count = 0 #Used to see how many frames have passed since the flap is shown
         self.image_shown = None
-
-    def _get_inputs(self):
-        return [pygame.K_AC_BACK] #Using Andriod Backspace Key because not on PC keyboard
         
     def _intro_looper(self):
         '''First game loop in intro screen'''
@@ -62,8 +56,8 @@ class FlappyEvaluateGame(FlappyGame):
 
         if self.image_shown != None:
             list_images.append((self.image_shown, (150,425)))
-            tOutput1 = self.font.render(str(int(self.output1)), True, (0,0,0))
-            tOutput2 = self.font.render(str(int(self.output2)), True, (0,0,0))
-            list_images.append((tOutput1, (10,435)))
-            list_images.append((tOutput2, (10,475)))
+            t_output1 = self.font.render(str(int(self.output1)), True, (0,0,0))
+            t_output2 = self.font.render(str(int(self.output2)), True, (0,0,0))
+            list_images.append((t_output1, (10,435)))
+            list_images.append((t_output2, (10,475)))
         return list_images
