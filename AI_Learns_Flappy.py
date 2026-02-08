@@ -1,7 +1,7 @@
 
 from FlappyBird import flappy as fp
 from FlappyBird.flappy import PlayGame, TrainGame, EvaluateGame
-import flappyModel as fm
+import flappy_model as fm
 import torch
 import os 
 import sys
@@ -10,7 +10,7 @@ file_dir = os.path.dirname(os.path.realpath(__file__))
 
 supported_types = ['PLAY', 'TRAIN', 'TEST', 'EVALUATE']
 
-def correct_Punctuation(supported_Types):
+def correct_punctuation(supported_Types):
    '''Adds the correct punctuation to the supported types'''
    if len(supported_Types)>2:
       string = ", ".join(supported_Types)
@@ -22,13 +22,13 @@ def correct_Punctuation(supported_Types):
    string = string[:index_of_last_word] + 'and ' + string[index_of_last_word:]
    return string
 
-def main(typeGame):
+def main(type_game):
    '''Prompts user for what game then runs it'''
 
    try:
-      typeGame = sys.argv[1]
+      type_game = sys.argv[1]
    except:
-      typeGame = None
+      type_game = None
    
    try:
       fps = int(sys.argv[2])
@@ -41,43 +41,43 @@ def main(typeGame):
       else:
          epoch = int(sys.argv[3])
    except:
-      if typeGame != None and typeGame.upper() == 'EVALUATE':
+      if type_game != None and type_game.upper() == 'EVALUATE':
          epoch = None
       else:
          epoch = 2500
 
 
-   if typeGame == None:
-      typeGame = input('Type of Game? ')
+   if type_game == None:
+      type_game = input('Type of Game? ')
       while True:  
-         if typeGame.upper() not in supported_types:
-            print('Only types of games supported are: ' + correct_Punctuation(supported_types))
-            typeGame = input('Type of Game? ')
+         if type_game.upper() not in supported_types:
+            print('Only types of games supported are: ' + correct_punctuation(supported_types))
+            type_game = input('Type of Game? ')
          else:
             break
    
 
-   if typeGame.upper() == 'TRAIN':
-      gm = fp.gameManager(TrainGame(file_dir = file_dir))
-      agent = fm.agent(gm)
+   if type_game.upper() == 'TRAIN':
+      gm = fp.GameManger(TrainGame(file_dir = file_dir))
+      agent = fm.Agent(gm)
       fm.train(agent, epochs = epoch, plotting_scores=True)
 
-   elif typeGame.upper() == 'PLAY':
-      gm = fp.gameManager(PlayGame(file_dir = file_dir))
+   elif type_game.upper() == 'PLAY':
+      gm = fp.GameManger(PlayGame(file_dir = file_dir))
       gm.play()
 
-   elif typeGame.upper() == 'EVALUATE':
-      gm = fp.gameManager(EvaluateGame(file_dir = file_dir, fps = fps))
-      agent = fm.agent(gm)
+   elif type_game.upper() == 'EVALUATE':
+      gm = fp.GameManger(EvaluateGame(file_dir = file_dir, fps = fps))
+      agent = fm.Agent(gm)
       agent.model.load_state_dict(torch.load(file_dir + '/test_weights.pt'))
       fm.evaluate(agent, epochs = epoch)
 
-   elif typeGame.upper() == 'TEST':
+   elif type_game.upper() == 'TEST':
 
-      gm = fp.gameManager(TrainGame(file_dir = file_dir))
-      agent = fm.agent(gm)
+      gm = fp.GameManger(TrainGame(file_dir = file_dir))
+      agent = fm.Agent(gm)
       fm.train(agent,epochs=epoch) #epochs here are the number of games run in order to trains
-      gm = fp.gameManager(EvaluateGame(file_dir = file_dir))
+      gm = fp.GameManger(EvaluateGame(file_dir = file_dir))
       agent.new_gm(gm)
       print('starting to evaluate')
       for i in range(3): #number of times it is going to be evaluated
