@@ -680,18 +680,21 @@ class GameManger:
 
     def get_state(self):
         try:
-            distance_top = self.game.player_y - (
+            distance_top_first = self.game.player_y - (
                 self.game.images["pipe"][0].get_height() + self.game.upper_pipes[-2]["y"]
             )
-            distance_bottom = self.game.lower_pipes[-2]["y"] - self.game.player_y
+            distance_top_second = self.game.player_y - (
+                self.game.images["pipe"][0].get_height() + self.game.upper_pipes[-1]["y"]
+            )
             return [
                 self.game.lower_pipes[-2]["x"],
-                distance_top,
-                distance_bottom,
+                self.game.lower_pipes[-1]["x"],
+                distance_top_first,
+                distance_top_second,
                 self.game.player_vel_y,
             ]
         except AttributeError:
-            return (0, 0, 0, 0)
+            return (0, 0, 0, 0, 0)
 
     def play(self):
         while True:
