@@ -38,7 +38,7 @@ def main():
    if args.mode == 'train':
       gm = fp.GameManger(TrainGame(file_dir=file_dir), fps_count=3)
       agent = Agent(gm)
-      train(agent, epochs=epochs, plotting_scores=True)
+      train(agent, epochs=epochs, plotting_scores=False)
 
    elif args.mode == 'play':
       gm = fp.GameManger(PlayGame(file_dir=file_dir))
