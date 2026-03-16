@@ -1,3 +1,4 @@
+from collections import deque
 import random
 import numpy as np
 import torch
@@ -12,16 +13,16 @@ from helper import plot
 from FlappyBird.flappy import GameManger
 
 # done is game over state
-ALPHA = 0.001
-GAMMA = 0.8
+ALPHA = 0.0005
+GAMMA = 0.95
 TAU = 0.001
 MEM_ALPHA = .6
 BETA = .6
-BATCH_SIZE = 32
-BUFFER_SIZE = 700000
-EPSILON_START = .5
+BATCH_SIZE = 64
+BUFFER_SIZE = 100000
+EPSILON_START = 1.0
 EPSILON_END = 0.02
-EPSILON_DECAY = 1000
+EPSILON_DECAY = 1500
 
 class QModel(nn.Module):
     def __init__(self, game_manager):
@@ -70,15 +71,15 @@ class ModelLearner:
             for target_param, param in zip(self.target_model.parameters(), self.model.parameters()):
                 target_param.data.copy_(self.tau * param.data + (1 - self.tau) * target_param.data)
 
-        target_q_value = batch['reward'] + (1 - batch['done']) * self.gamma * next_q_value.max(dim=1).values.view(-1, 1)
+        target_q_value = batch['reward'].view(-1, 1) + (1 - batch['done']).view(-1, 1) * self.gamma * next_q_value.max(dim=1).values.view(-1, 1)
         
-        error = (target_q_value - cur_q_value) ** 2
-        loss = error.mean()
+        loss = self.criterion(target_q_value, cur_q_value)
         self.optimizer.zero_grad()
         loss.backward()
+        torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
         self.optimizer.step()
 
-        return error
+        return loss.detach()
 
 
 class Agent:
@@ -95,15 +96,15 @@ class Agent:
         beta=BETA
     ):
         self.num_games = 0
-        self.gamma = 0
-        self.memory = TensorDictPrioritizedReplayBuffer(
-            alpha=alpha,
-            beta=beta,
-            eps=1e-6,
-            priority_key='td_error',
-            storage=LazyTensorStorage(max_size=buffer_size),
-            batch_size=BATCH_SIZE
-        )
+        # self.memory = TensorDictPrioritizedReplayBuffer(
+        #     alpha=alpha,
+        #     beta=beta,
+        #     eps=1e-6,
+        #     priority_key='td_error',
+        #     storage=LazyTensorStorage(max_size=buffer_size),
+        #     batch_size=BATCH_SIZE
+        # )
+        self.memory = deque(maxlen=buffer_size)
         self.max_priority = torch.tensor(1.0)
 
         self.game_manager = game_manager
@@ -121,7 +122,7 @@ class Agent:
         self.game_manager = game_manager
 
     def get_state(self):
-        return np.array(self.game_manager.get_state(), dtype=int)
+        return np.array(self.game_manager.get_state(), dtype=np.float32)
 
     def remember(self, state, action, reward, new_state, done):
         td = TensorDict(
@@ -133,14 +134,15 @@ class Agent:
              'td_error' : self.max_priority
              }
         )
-        self.memory.add(td)
+        self.memory.append(td)
+
 
     def train(self):
-        batch = self.memory.sample()
+        batch = torch.stack(random.sample(self.memory, BATCH_SIZE), dim=0)
         error = self.learner.train_step(batch)
-        self.max_priority = torch.max(self.max_priority, error.max())
-        batch['td_error'] = error
-        self.memory.update_tensordict_priority(batch)
+        #self.max_priority = torch.max(self.max_priority, error.max())
+        #batch['td_error'] = error.detach().abs()
+        #self.memory.update_tensordict_priority(batch)
 
     def get_action(self, state, use_epsilon=True):
         self.epsilon = np.interp(

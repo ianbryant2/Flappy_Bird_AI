@@ -625,8 +625,8 @@ class GameManger:
 
         self.top_count = 0
         self.bottom_count = 0
-        self.upper_dist_offset = 10
-        self.lower_dist_offset = 20
+        self.upper_dist_offset = 30
+        self.lower_dist_offset = 30
 
     def execute_action(self):
         if self.movement == [1, 0]:
@@ -647,23 +647,29 @@ class GameManger:
         reward = 0
         done = False
 
-        distance_top = self.game.player_y - (
-            self.game.images["pipe"][0].get_height() + self.game.upper_pipes[-2]["y"]
+        pipe_w = self.game.images["pipe"][0].get_width()
+        pipe_h = self.game.images["pipe"][0].get_height()
+        upcoming_idx = next(
+            (i for i, p in enumerate(self.game.upper_pipes) if p["x"] + pipe_w > self.game.player_x),
+            len(self.game.upper_pipes) - 1
         )
-        distance_bottom = self.game.lower_pipes[-2]["y"] - self.game.player_y
+
+        distance_top = self.game.player_y - (pipe_h + self.game.upper_pipes[upcoming_idx]["y"])
+
+        player_h = self.game.images["player"][0].get_height()
+        distance_bottom = self.game.lower_pipes[upcoming_idx]["y"] - (self.game.player_y + player_h)
 
         if distance_top < self.upper_dist_offset or distance_bottom < self.lower_dist_offset:
             reward += -200
         else:
             reward += self.determine_pos_reward()
-
+        
         if crash_info is not None:
             done = True
             reward += -200
             return reward, done, score
         if score > self.score_check:
             reward += 200
-            return reward, done, score
 
         return reward, done, score
 
@@ -672,6 +678,8 @@ class GameManger:
         crash_info = None
         for _ in range(self.fps_count):
             crash_info = self.game.level_loop()
+            if crash_info is not None:
+                break
         return self.get_reward(crash_info, self.game.score)
 
     def reset(self):
@@ -680,20 +688,27 @@ class GameManger:
 
     def get_state(self):
         try:
-            distance_top_first = self.game.player_y - (
-                self.game.images["pipe"][0].get_height() + self.game.upper_pipes[-2]["y"]
-            )
-            distance_top_second = self.game.player_y - (
-                self.game.images["pipe"][0].get_height() + self.game.upper_pipes[-1]["y"]
-            )
+            pipe_w = self.game.images["pipe"][0].get_width()
+            pipe_h = self.game.images["pipe"][0].get_height()
+            upcoming_idx = [
+                i for i, p in enumerate(self.game.upper_pipes)
+                if p["x"] + pipe_w > self.game.player_x
+            ]
+
+            idx0 = upcoming_idx[0]
+            idx1 = upcoming_idx[1] if len(upcoming_idx) > 1 else idx0
+
+            distance_top_next = self.game.player_y - (pipe_h + self.game.upper_pipes[idx0]["y"])
+            distance_top_second = self.game.player_y - (pipe_h + self.game.upper_pipes[idx1]["y"])
+
             return [
-                self.game.lower_pipes[-2]["x"],
-                self.game.lower_pipes[-1]["x"],
-                distance_top_first,
+                self.game.lower_pipes[idx0]["x"],
+                self.game.lower_pipes[idx1]["x"],
+                distance_top_next,
                 distance_top_second,
                 self.game.player_vel_y,
             ]
-        except AttributeError:
+        except (AttributeError, IndexError, KeyError):
             return (0, 0, 0, 0, 0)
 
     def play(self):
